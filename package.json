@@ -1,7 +1,9 @@
 {
   "name": "frame-web",
   "version": "0.1.0",
-  "private": true,
+  "author": "ndom91 <yo@ndo.dev>",
+  "repository": "https://github.com/ndom91/frame-web.git",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
