@@ -13,11 +13,25 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
+import { Metadata } from "next";
 
-export default function Page() {
+export const metadata: Metadata = {
+  title: "Domino Frame - Dashboard",
+  description: "Manage your Frames",
+};
+
+export default async function Page({ children }: { children: React.ReactNode }) {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
+  console.log('SESSION', session)
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar session={session} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
@@ -26,26 +40,19 @@ export default function Page() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
+                  <BreadcrumbLink href="/">
+                    Dashboard
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
+                {/* <BreadcrumbSeparator className="hidden md:block" /> */}
+                {/* <BreadcrumbItem> */}
+                {/*   <BreadcrumbPage>Data Fetching</BreadcrumbPage> */}
+                {/* </BreadcrumbItem> */}
               </BreadcrumbList>
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-          </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
-        </div>
+        {children}
       </SidebarInset>
     </SidebarProvider>
   )

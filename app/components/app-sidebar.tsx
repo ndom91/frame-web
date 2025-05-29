@@ -1,21 +1,14 @@
 "use client"
 
 import * as React from "react"
-import {
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  LifeBuoy,
-  Map,
-  PieChart,
-  Send,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react"
+import { ApertureIcon } from "@phosphor-icons/react/dist/ssr/Aperture";
+import { ImagesIcon } from "@phosphor-icons/react/dist/ssr/Images";
+import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
+import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/ssr/PaperPlaneTilt";
+import { LifebuoyIcon } from "@phosphor-icons/react/dist/ssr/Lifebuoy";
 
 import { NavMain } from "@/app/components/nav-main"
-import { NavProjects } from "@/app/components/nav-projects"
+// import { NavProjects } from "@/app/components/nav-projects"
 import { NavSecondary } from "@/app/components/nav-secondary"
 import { NavUser } from "@/app/components/nav-user"
 import {
@@ -27,96 +20,47 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { type Session } from "../lib/auth"
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "Media",
+      url: "/dashboard/media",
+      icon: ImagesIcon,
       isActive: true,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "Upload",
+          url: "/dashboard/media/upload",
         },
         {
           title: "Starred",
-          url: "#",
+          url: "/dashboard/media/upload",
         },
         {
           title: "Settings",
-          url: "#",
+          url: "/dashboard/media/settings",
         },
       ],
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
+      title: "Frames",
+      url: "/dashboard/frames",
+      icon: FrameCornersIcon,
+      isActive: true,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: "Add",
+          url: "/dashboard/frames/add",
         },
         {
-          title: "Explorer",
-          url: "#",
+          title: "List",
+          url: "/dashboard/frames/list",
         },
         {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
+          title: "Settings",
+          url: "/dashboard/frames/settings",
         },
       ],
     },
@@ -125,34 +69,22 @@ const data = {
     {
       title: "Support",
       url: "#",
-      icon: LifeBuoy,
+      icon: LifebuoyIcon,
     },
     {
       title: "Feedback",
       url: "#",
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      icon: PaperPlaneTiltIcon,
     },
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type Props = {
+  session: Session | null
+} & React.ComponentProps<typeof Sidebar>
+
+export function AppSidebar({ ...props }: Props) {
+  console.log('AppSidebar.sessoin', props.session)
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -161,11 +93,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
+                  <ApertureIcon className="size-6" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
+                  <div className="truncate font-semibold">Domino Frame</div>
+                  <div className="truncate text-xs flex items-center gap-2">Share the love</div>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -174,11 +106,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={props.session?.user} />
       </SidebarFooter>
     </Sidebar>
   )
