@@ -26,7 +26,6 @@ const data = {
   navMain: [
     {
       title: "Media",
-      url: "/dashboard/media",
       icon: ImagesIcon,
       isActive: true,
       items: [
@@ -35,8 +34,8 @@ const data = {
           url: "/dashboard/media/upload",
         },
         {
-          title: "Starred",
-          url: "/dashboard/media/upload",
+          title: "View All",
+          url: "/dashboard/media/view",
         },
         {
           title: "Settings",
@@ -46,7 +45,6 @@ const data = {
     },
     {
       title: "Frames",
-      url: "/dashboard/frames",
       icon: FrameCornersIcon,
       isActive: true,
       items: [
