@@ -20,7 +20,7 @@ export function LoginForm({
   const signInSocial = async (provider: 'google' | 'github') => {
     await signIn.social({
       provider: provider,
-      callbackURL: '/'
+      callbackURL: '/dashboard'
     })
   }
   return (
