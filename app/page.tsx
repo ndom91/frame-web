@@ -1,6 +1,4 @@
 import Image from "next/image";
-import LoginButton from "./components/login-button";
-import LogoutButton from "./components/logout-button";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
 
@@ -22,11 +20,6 @@ export default async function Home() {
           height={38}
           priority
         />
-
-        <div className="flex gap-4">
-          <LoginButton>Signin with GitHub</LoginButton>
-          <LogoutButton>Signout</LogoutButton>
-        </div>
 
         {session ? (
           <div>
