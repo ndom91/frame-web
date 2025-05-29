@@ -1,15 +1,15 @@
 import Image from "next/image";
-import Button from "./components/button";
+import LoginButton from "./components/login-button";
+import LogoutButton from "./components/logout-button";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
 
 export default async function Home() {
-
   const session = await auth.api.getSession({
     headers: await headers()
   })
 
-  console.log('SESSOIN', session)
+  console.log('SESSION', session)
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -23,7 +23,18 @@ export default async function Home() {
           priority
         />
 
-        <Button>Signin with GitHub</Button>
+        <div className="flex gap-4">
+          <LoginButton>Signin with GitHub</LoginButton>
+          <LogoutButton>Signout</LogoutButton>
+        </div>
+
+        {session ? (
+          <div>
+            <pre className="text-sm text-gray-500">
+              {JSON.stringify(session, null, 2)}
+            </pre>
+          </div>
+        ) : null}
       </main>
     </div>
   );
