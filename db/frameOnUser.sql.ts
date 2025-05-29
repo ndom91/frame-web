@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { integer, primaryKey, sqliteTable } from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { user } from "./user.sql";
 import { frame } from "./frame.sql";
 
@@ -12,6 +12,7 @@ export const usersToFrames = sqliteTable(
     frameId: integer('frame_id')
       .notNull()
       .references(() => frame.id),
+    role: text({ enum: ["ADMIN", "WRITE", "READ"] }).default('READ').notNull(),
   },
   (t) => [
     primaryKey({ columns: [t.userId, t.frameId] })
