@@ -1,11 +1,12 @@
+import { redirect } from 'next/navigation'
 import { AppSidebar } from "@/app/components/app-sidebar"
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
+  // BreadcrumbPage,
+  // BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -13,19 +14,24 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { auth } from "@/app/lib/auth";
+import { auth, type Session } from "@/app/lib/auth";
 import { headers } from "next/headers";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Domino Frame - Dashboard",
-  description: "Manage your Frames",
 };
 
-export default async function Page({ children }: { children: React.ReactNode }) {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  })
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  let session: Session | null
+
+  try {
+    session = await auth.api.getSession({
+      headers: await headers()
+    })
+  } catch (e) {
+    if (e) redirect('/login')
+  }
 
   return (
     <SidebarProvider>
