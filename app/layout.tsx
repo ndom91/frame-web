@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
-import { ThemeProvider } from "@/app/lib/theme-provider"
-
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner"
+
+import { ThemeProvider } from "@/app/lib/theme-provider"
 import "./globals.css";
+export { viewport, metadata } from "@/app/lib/metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,11 +14,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-export const metadata: Metadata = {
-  title: "Domino Frame",
-  description: "Manage your Frames",
-};
 
 export default function RootLayout({
   children,
