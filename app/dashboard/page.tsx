@@ -1,5 +1,6 @@
 import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
 import { ImageIcon } from "@phosphor-icons/react/dist/ssr/Image";
+import { VideoIcon } from "@phosphor-icons/react/dist/ssr/Video";
 import RegisterPasskey from './register-passkey';
 
 import { auth } from "@/app/lib/auth";
@@ -25,7 +26,11 @@ export default async function Dashboard() {
           <div className="text-sidebar-foreground text-8xl">32</div>
           <div className="text-sidebar-foreground/75 text-2xl">Images</div>
         </div>
-        <div className="aspect-video flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5" />
+        <div className="aspect-video flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
+          <VideoIcon size={192} className="absolute -top-2 -right-10 rotate-10 text-muted-foreground/15" />
+          <div className="text-sidebar-foreground text-8xl">2</div>
+          <div className="text-sidebar-foreground/75 text-2xl">Videos</div>
+        </div>
       </div >
       <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-5">
         {session ? (
