@@ -15,17 +15,17 @@ export default async function Dashboard() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <RegisterPasskey />
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div className="aspect-video flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
+        <div className=" flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
           <FrameCornersIcon size={192} className="absolute -top-2 -right-10 rotate-10 text-muted-foreground/20" />
           <div className="text-sidebar-foreground text-8xl">5</div>
           <div className="text-sidebar-foreground/75 text-2xl">Frames</div>
         </div>
-        <div className="aspect-video flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
+        <div className=" flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
           <ImageIcon size={192} className="absolute -top-2 -right-10 rotate-10 text-muted-foreground/15" />
           <div className="text-sidebar-foreground text-8xl">32</div>
           <div className="text-sidebar-foreground/75 text-2xl">Images</div>
         </div>
-        <div className="aspect-video flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
+        <div className=" flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
           <VideoIcon size={192} className="absolute -top-2 -right-10 rotate-10 text-muted-foreground/15" />
           <div className="text-sidebar-foreground text-8xl">2</div>
           <div className="text-sidebar-foreground/75 text-2xl">Videos</div>
@@ -34,7 +34,7 @@ export default async function Dashboard() {
       <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-5">
         {session ? (
           <div>
-            <pre className="text-sm text-sidebar-foreground/50 wrap">
+            <pre className="text-sm text-sidebar-foreground/50 wrap whitespace-pre-wrap">
               {JSON.stringify(session, null, 2)}
             </pre>
           </div>

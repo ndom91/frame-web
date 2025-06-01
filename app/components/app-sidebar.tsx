@@ -82,7 +82,7 @@ type Props = {
 } & React.ComponentProps<typeof Sidebar>
 
 export function AppSidebar({ ...props }: Props) {
-  console.log('AppSidebar.sessoin', props.session)
+  // console.log('AppSidebar.sessoin', props.session)
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 export default function RegisterPasskey() {
   useEffect(() => {
     if (!document) return
+
     const pathnameParams = new URLSearchParams(new URL(document.URL).search)
     async function registerPasskey() {
       if (pathnameParams.get("new-user") === "true") {

@@ -27,8 +27,6 @@ export default async function Page({ children }: { children: React.ReactNode }) 
     headers: await headers()
   })
 
-  console.log('SESSION', session)
-
   return (
     <SidebarProvider>
       <AppSidebar session={session} />
