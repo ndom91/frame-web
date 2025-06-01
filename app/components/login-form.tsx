@@ -11,18 +11,28 @@ import {
 } from "@/components/ui/card"
 // import { Input } from "@/components/ui/input"
 // import { Label } from "@/components/ui/label"
-import { signIn } from "../lib/auth-client"
+import { signIn } from "@/app/lib/auth-client"
+import { useRouter } from "next/navigation"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const router = useRouter()
   const signInSocial = async (provider: 'google' | 'github') => {
     await signIn.social({
       provider: provider,
       callbackURL: '/dashboard',
       newUserCallbackURL: '/dashboard?new-user=true'
     })
+  }
+
+  const signInPasskey = async () => {
+    const data = await signIn.passkey();
+    console.log("PASSKEY.DATA", data)
+    if (!data?.error) {
+      router.push('/dashboard')
+    }
   }
 
   return (
@@ -64,6 +74,9 @@ export function LoginForm({
               </Button>
               <Button disabled type="button" variant="outline" className="w-full" onClick={() => signInSocial('google')}>
                 Login with Google
+              </Button>
+              <Button type="button" variant="outline" className="w-full" onClick={() => signInPasskey()}>
+                Login with Passkey
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
