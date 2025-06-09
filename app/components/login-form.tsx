@@ -13,6 +13,7 @@ import {
 // import { Label } from "@/components/ui/label"
 import { signIn } from "@/app/lib/auth-client"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function LoginForm({
   className,
@@ -30,9 +31,11 @@ export function LoginForm({
   const signInPasskey = async () => {
     const data = await signIn.passkey();
     console.log("PASSKEY.DATA", data)
-    if (!data?.error) {
-      router.push('/dashboard')
+    if (data?.error) {
+      toast.error('Error signing in with Passkey, please try again')
+      return
     }
+    router.push('/dashboard')
   }
 
   return (

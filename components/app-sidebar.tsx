@@ -7,10 +7,8 @@ import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
 import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/ssr/PaperPlaneTilt";
 import { LifebuoyIcon } from "@phosphor-icons/react/dist/ssr/Lifebuoy";
 
-import { NavMain } from "@/app/components/nav-main"
-// import { NavProjects } from "@/app/components/nav-projects"
-import { NavSecondary } from "@/app/components/nav-secondary"
-import { NavUser } from "@/app/components/nav-user"
+import { NavMain } from "@/components/nav-main"
+import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +17,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@/components/ui/sidebar"
 import { type Session } from "../lib/auth"
 
@@ -30,11 +29,7 @@ const data = {
       isActive: true,
       items: [
         {
-          title: "Upload",
-          url: "/dashboard/media/upload",
-        },
-        {
-          title: "View All",
+          title: "Files",
           url: "/dashboard/media/view",
         },
         {
@@ -49,30 +44,18 @@ const data = {
       isActive: true,
       items: [
         {
-          title: "Add",
-          url: "/dashboard/frames/add",
+          title: "View",
+          url: "/dashboard/frames/list",
         },
         {
-          title: "List",
-          url: "/dashboard/frames/list",
+          title: "Add",
+          url: "/dashboard/frames/add",
         },
         {
           title: "Settings",
           url: "/dashboard/frames/settings",
         },
       ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: LifebuoyIcon,
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: PaperPlaneTiltIcon,
     },
   ],
 }
@@ -82,20 +65,19 @@ type Props = {
 } & React.ComponentProps<typeof Sidebar>
 
 export function AppSidebar({ ...props }: Props) {
-  // console.log('AppSidebar.sessoin', props.session)
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <a href="#">
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <ApertureIcon className="size-6" />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <div className="truncate font-semibold">Domino Frame</div>
-                  <div className="truncate text-xs flex items-center gap-2">Share the love</div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-medium">Domino Frame</span>
+                  <span className="">v1.0.0</span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -104,11 +86,12 @@ export function AppSidebar({ ...props }: Props) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={props.session?.user} />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }

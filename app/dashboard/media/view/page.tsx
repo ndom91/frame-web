@@ -1,11 +1,14 @@
 import { Metadata } from "next";
+import FileManager from '@/app/dashboard/media/view/file-manager'
 
 export const metadata: Metadata = {
   title: "Domino Frame - Media",
 };
 
-export default function Page() {
+export default async function Page() {
   return (
-    <div>View Page</div>
+    <div>
+      <FileManager />
+    </div>
   )
 }
