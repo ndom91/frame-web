@@ -19,7 +19,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { type Session } from "../lib/auth"
+import { type Session } from "@/app/lib/auth"
 
 const data = {
   navMain: [
@@ -50,10 +50,6 @@ const data = {
         {
           title: "Add",
           url: "/dashboard/frames/add",
-        },
-        {
-          title: "Settings",
-          url: "/dashboard/frames/settings",
         },
       ],
     },
