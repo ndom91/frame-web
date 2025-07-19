@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="flex flex-col gap-4 p-4 pt-0 items-center w-1/2 flex-1 mx-auto">
       <h1 className="text-2xl">Add Frame</h1>
       <FindDevice />
     </div>
