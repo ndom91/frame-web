@@ -108,11 +108,6 @@ export function FindDevice() {
 		s3_bucket: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.R2_BUCKET}`,
 	});
 
-	// const frameConfig: FrameConfig = {
-	// 	name: "",
-	// 	s3_bucket: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.R2_BUCKET}`,
-	// };
-
 	function initFrameSetup() {
 		if (!wifiCredentials?.ssid || !wifiCredentials?.password) {
 			toast.error("Please enter WiFi credentials");
