@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
+import Logo from "./logo_transparent.png";
 import { ApertureIcon } from "@phosphor-icons/react/dist/ssr/Aperture";
 import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
 // import { ImagesIcon } from "@phosphor-icons/react/dist/ssr/Images";
@@ -68,12 +70,12 @@ export function AppSidebar({ ...props }: Props) {
 					<SidebarMenuItem>
 						<SidebarMenuButton size="lg" asChild>
 							<a href="#">
-								<div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-									<ApertureIcon className="size-6" />
+								<div className=" text-sidebar-primary-foreground flex items-center justify-center rounded-lg">
+									<Image src={Logo} alt="Frame Logo" width={64} height={48} />
 								</div>
 								<div className="flex flex-col gap-0.5 leading-none">
 									<span className="font-medium">Domino Frame</span>
-									<span className="">v1.0.0</span>
+									<span className="text-muted-foreground">v0.1.2</span>
 								</div>
 							</a>
 						</SidebarMenuButton>
