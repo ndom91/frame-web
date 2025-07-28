@@ -52,24 +52,24 @@ export const metadata: Metadata = {
 		locale: "en_US",
 		type: "website",
 	},
-	icons: {
-		icon: [
-			{ url: "/logo_transparent.png" },
-			// new URL('/icon.png', 'https://example.com'),
-			// { url: '/icon-dark.png', media: '(prefers-color-scheme: dark)' },
-		],
-		// shortcut: ['/shortcut-icon.png'],
-		// apple: [
-		//   { url: '/apple-icon.png' },
-		//   { url: '/apple-icon-x3.png', sizes: '180x180', type: 'image/png' },
-		// ],
-		// other: [
-		//   {
-		//     rel: 'apple-touch-icon-precomposed',
-		//     url: '/apple-touch-icon-precomposed.png',
-		//   },
-		// ],
-	},
+	// icons: {
+	// 	icon: [
+	// { url: "/logo_transparent.png" },
+	// new URL('/icon.png', 'https://example.com'),
+	// { url: '/icon-dark.png', media: '(prefers-color-scheme: dark)' },
+	// ],
+	// shortcut: ['/shortcut-icon.png'],
+	// apple: [
+	//   { url: '/apple-icon.png' },
+	//   { url: '/apple-icon-x3.png', sizes: '180x180', type: 'image/png' },
+	// ],
+	// other: [
+	//   {
+	//     rel: 'apple-touch-icon-precomposed',
+	//     url: '/apple-touch-icon-precomposed.png',
+	//   },
+	// ],
+	// },
 	// itunes: {
 	//   appId: 'myAppStoreID',
 	//   appArgument: 'myAppArgument',
