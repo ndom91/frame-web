@@ -1,11 +1,18 @@
 import { Metadata } from "next";
+import Frames from "@/app/dashboard/frames/list/frames";
+import { db } from "@/app/lib/db";
 
 export const metadata: Metadata = {
-  title: "Domino Frame - Frame",
+	title: "Domino Frame - Frames",
 };
 
-export default function Page() {
-  return (
-    <div>List Page</div>
-  )
+export default async function Page() {
+	const frames = await db.query.frame.findMany();
+	console.log("FRAMES", frames);
+
+	return (
+		<div>
+			<Frames />
+		</div>
+	);
 }
