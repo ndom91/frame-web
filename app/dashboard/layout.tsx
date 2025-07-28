@@ -16,6 +16,7 @@ import {
 import { auth, type Session } from "@/app/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { DynamicBreadcrumb } from "./dynamic-breadcrumb";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   let session: Session | Record<string, unknown> | null = {}
@@ -49,19 +50,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
             orientation="vertical"
             className="mr-2 data-[orientation=vertical]:h-4"
           />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">
-                  Building Your Application
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          <DynamicBreadcrumb />
         </header>
         {children}
       </SidebarInset>
