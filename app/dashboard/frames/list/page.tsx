@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 
 export default async function Page() {
 	const frames = await db.query.frame.findMany();
-	console.log("FRAMES", frames);
 
 	return (
 		<div>

@@ -10,7 +10,8 @@ import { ClockCountdownIcon } from "@phosphor-icons/react/dist/ssr/ClockCountdow
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import Frame, { type Frame as FrameConfig } from "./frame";
+import Frame from "./frame";
+import { type Frame as FrameConfig } from "@/lib/types";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -31,7 +32,7 @@ interface Props {
 }
 
 export default function FramesPage({ frames }: Props) {
-	const [selectedFrames, setSelectedFrames] = useState<string[]>([]);
+	const [selectedFrames, setSelectedFrames] = useState<number[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -110,7 +111,10 @@ export default function FramesPage({ frames }: Props) {
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
-								<DropdownMenuItem>
+								<DropdownMenuItem
+									className="hover:cursor-disabled"
+									title="Coming Soon"
+								>
 									Restart Selected <ClockCountdownIcon className="size-5" />
 								</DropdownMenuItem>
 								{/* <DropdownMenuItem>Change Settings</DropdownMenuItem> */}

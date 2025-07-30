@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Dispatch, SetStateAction } from "react";
 import { Badge } from "@/components/ui/badge";
-
+import { useRouter } from "next/navigation";
 import { DotsThreeCircleIcon } from "@phosphor-icons/react/dist/ssr/DotsThreeCircle";
 import { PulseIcon } from "@phosphor-icons/react/dist/ssr/Pulse";
 import { MapPinIcon } from "@phosphor-icons/react/dist/ssr/MapPin";
@@ -20,24 +20,12 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-export type Frame = {
-	id: string;
-	title: string;
-	location: string;
-	model: string;
-	createdAt: string;
-	updatedAt: string;
-	frameId: string;
-	status: "online" | "offline" | "syncing";
-	lastSync?: string;
-	currentImage?: string;
-};
+import type { Frame } from "@/lib/types";
 
 interface Props {
 	frame: Frame;
-	selectedFrames: string[];
-	setSelectedFrames: Dispatch<SetStateAction<string[]>>;
+	selectedFrames: number[];
+	setSelectedFrames: Dispatch<SetStateAction<number[]>>;
 }
 
 export default function Frame({
@@ -45,7 +33,9 @@ export default function Frame({
 	selectedFrames,
 	setSelectedFrames,
 }: Props) {
-	const handleSelectFrame = (frameId: string) => {
+	const router = useRouter();
+
+	const handleSelectFrame = (frameId: number) => {
 		setSelectedFrames((prev) =>
 			prev.includes(frameId)
 				? prev.filter((id) => id !== frameId)
@@ -53,7 +43,9 @@ export default function Frame({
 		);
 	};
 
-	const getStatusIcon = (status: string) => {
+	const getStatusIcon = (status: string | null) => {
+		if (!status) return;
+
 		switch (status) {
 			case "online":
 				return <WifiHighIcon className="size-5 text-lime-500" />;
@@ -65,7 +57,9 @@ export default function Frame({
 				return <WifiSlashIcon className="size-5 text-gray-400" />;
 		}
 	};
-	const getStatusBadge = (status: string) => {
+	const getStatusBadge = (status: string | null) => {
+		if (!status) return;
+
 		const variants = {
 			online: "bg-lime-100 text-lime-800 border-lime-200",
 			offline: "bg-rose-100 text-rose-800 border-rose-200",
@@ -102,9 +96,17 @@ export default function Frame({
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
-							<DropdownMenuItem>View Details</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => router.push(`/dashboard/frame/${frame.id}`)}
+							>
+								View Details
+							</DropdownMenuItem>
 							<DropdownMenuItem>Sync Now</DropdownMenuItem>
-							<DropdownMenuItem>Settings</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => router.push(`/dashboard/frame/${frame.id}`)}
+							>
+								Settings
+							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem className="text-red-600">
 								Remove Frame
@@ -147,7 +149,12 @@ export default function Frame({
 					{/* <Button variant="outline" size="sm" className="flex-1 bg-transparent"> */}
 					{/* 	Sync Now */}
 					{/* </Button> */}
-					<Button variant="outline" size="sm" className="flex-1 bg-transparent">
+					<Button
+						variant="outline"
+						size="sm"
+						className="flex-1 bg-transparent"
+						onClick={() => router.push(`/dashboard/frame/${frame.id}`)}
+					>
 						Manage
 					</Button>
 				</div>
