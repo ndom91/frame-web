@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
 			new URL("https://unsplash.it/**"),
 			new URL("https://unsplash.it/300/200?random"),
 			new URL("https://picsum.photos/**"),
+			new URL(`https://images.frame.ndo.dev/**`),
 		],
 	},
 };
