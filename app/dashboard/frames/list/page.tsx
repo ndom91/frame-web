@@ -12,7 +12,7 @@ export default async function Page() {
 
 	return (
 		<div>
-			<Frames />
+			<Frames frames={frames} />
 		</div>
 	);
 }
