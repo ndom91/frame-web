@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import Logo from "./logo_transparent.png";
-import { ApertureIcon } from "@phosphor-icons/react/dist/ssr/Aperture";
+import Logo from "./logo.png";
 import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
 // import { ImagesIcon } from "@phosphor-icons/react/dist/ssr/Images";
 // import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/ssr/PaperPlaneTilt";
@@ -71,7 +70,13 @@ export function AppSidebar({ ...props }: Props) {
 						<SidebarMenuButton size="lg" asChild>
 							<a href="#">
 								<div className=" text-sidebar-primary-foreground flex items-center justify-center rounded-lg">
-									<Image src={Logo} alt="Frame Logo" width={64} height={48} />
+									<Image
+										src={Logo}
+										alt="Frame Logo"
+										width={48}
+										height={48}
+										className="invert"
+									/>
 								</div>
 								<div className="flex flex-col gap-0.5 leading-none">
 									<span className="font-medium">Domino Frame</span>

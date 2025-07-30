@@ -54,7 +54,7 @@ export const metadata: Metadata = {
 	},
 	// icons: {
 	// 	icon: [
-	// { url: "/logo_transparent.png" },
+	// { url: "/logo.png" },
 	// new URL('/icon.png', 'https://example.com'),
 	// { url: '/icon-dark.png', media: '(prefers-color-scheme: dark)' },
 	// ],
