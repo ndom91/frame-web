@@ -76,13 +76,14 @@ export default function Frame({
 		);
 	};
 	return (
-		<Card key={frame.id} className="overflow-hidden gap-0">
-			<CardHeader className="">
+		<Card key={frame.id} className="overflow-hidden gap-0 py-4">
+			<CardHeader className="px-4">
 				<div className="flex items-start justify-between">
-					<div className="flex items-center gap-2">
+					<div className="flex items-start gap-2">
 						<Checkbox
 							checked={selectedFrames.includes(frame.id)}
 							onCheckedChange={() => handleSelectFrame(frame.id)}
+							className="mt-1"
 						/>
 						<div>
 							<h3 className="font-semibold">{frame.title}</h3>
@@ -115,8 +116,8 @@ export default function Frame({
 					</DropdownMenu>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-3">
-				<div className="relative overflow-hidden rounded-lg bg-muted">
+			<CardContent className="flex flex-col space-y-3 h-full px-4">
+				<div className="relative overflow-hidden rounded-lg bg-muted flex-1">
 					<Image
 						fill={true}
 						src={frame.currentImage || "https://unsplash.it/300/200?random"}

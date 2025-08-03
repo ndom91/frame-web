@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner"
 
 import { ThemeProvider } from "@/app/lib/theme-provider"
+import { QueryProvider } from "@/app/lib/query-client"
 import "./globals.css";
 export { viewport, metadata } from "@/app/lib/metadata";
 
@@ -25,15 +26,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster position="bottom-center" />
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster position="bottom-center" />
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );
