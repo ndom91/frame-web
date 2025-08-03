@@ -1,121 +1,107 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/app/lib/db'
-import { frame } from '@/db/frame.sql'
-import { eq } from 'drizzle-orm'
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/app/lib/db";
+import { frame } from "@/db/frame.sql";
+import { eq } from "drizzle-orm";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+	_request: NextRequest,
+	{ params }: { params: Promise<{ id: string }> },
 ) {
-  try {
-    const frameId = parseInt(params.id)
-    
-    if (isNaN(frameId)) {
-      return NextResponse.json(
-        { error: 'Invalid frame ID' },
-        { status: 400 }
-      )
-    }
+	try {
+		const { id } = await params;
+		const frameId = parseInt(id);
 
-    const frameResult = await db.query.frame.findFirst({
-      where: eq(frame.id, frameId),
-    })
+		if (isNaN(frameId)) {
+			return NextResponse.json({ error: "Invalid frame ID" }, { status: 400 });
+		}
 
-    if (!frameResult) {
-      return NextResponse.json(
-        { error: 'Frame not found' },
-        { status: 404 }
-      )
-    }
+		const frameResult = await db.query.frame.findFirst({
+			where: eq(frame.id, frameId),
+		});
 
-    return NextResponse.json(frameResult)
-  } catch (error) {
-    console.error('Error fetching frame:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch frame' },
-      { status: 500 }
-    )
-  }
+		if (!frameResult) {
+			return NextResponse.json({ error: "Frame not found" }, { status: 404 });
+		}
+
+		return NextResponse.json(frameResult);
+	} catch (error) {
+		console.error("Error fetching frame:", error);
+		return NextResponse.json(
+			{ error: "Failed to fetch frame" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+	request: NextRequest,
+	{ params }: { params: Promise<{ id: string }> },
 ) {
-  try {
-    const frameId = parseInt(params.id)
-    
-    if (isNaN(frameId)) {
-      return NextResponse.json(
-        { error: 'Invalid frame ID' },
-        { status: 400 }
-      )
-    }
+	try {
+		const { id } = await params;
+		const frameId = parseInt(id);
 
-    const body = await request.json()
-    const { title, location, model, status } = body
+		if (isNaN(frameId)) {
+			return NextResponse.json({ error: "Invalid frame ID" }, { status: 400 });
+		}
 
-    const updatedFrame = await db
-      .update(frame)
-      .set({
-        ...(title && { title }),
-        ...(location && { location }),
-        ...(model && { model }),
-        ...(status && { status }),
-        updatedAt: new Date(),
-      })
-      .where(eq(frame.id, frameId))
-      .returning()
+		const body = await request.json();
+		const { title, location, model, status } = body;
 
-    if (updatedFrame.length === 0) {
-      return NextResponse.json(
-        { error: 'Frame not found' },
-        { status: 404 }
-      )
-    }
+		const updatedFrame = await db
+			.update(frame)
+			.set({
+				...(title && { title }),
+				...(location && { location }),
+				...(model && { model }),
+				...(status && { status }),
+				updatedAt: new Date(),
+			})
+			.where(eq(frame.id, frameId))
+			.returning();
 
-    return NextResponse.json(updatedFrame[0])
-  } catch (error) {
-    console.error('Error updating frame:', error)
-    return NextResponse.json(
-      { error: 'Failed to update frame' },
-      { status: 500 }
-    )
-  }
+		if (updatedFrame.length === 0) {
+			return NextResponse.json({ error: "Frame not found" }, { status: 404 });
+		}
+
+		return NextResponse.json(updatedFrame[0]);
+	} catch (error) {
+		console.error("Error updating frame:", error);
+		return NextResponse.json(
+			{ error: "Failed to update frame" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+	_request: NextRequest,
+	{ params }: { params: Promise<{ id: string }> },
 ) {
-  try {
-    const frameId = parseInt(params.id)
-    
-    if (isNaN(frameId)) {
-      return NextResponse.json(
-        { error: 'Invalid frame ID' },
-        { status: 400 }
-      )
-    }
+	try {
+		const { id } = await params;
+		const frameId = parseInt(id);
 
-    const deletedFrame = await db
-      .delete(frame)
-      .where(eq(frame.id, frameId))
-      .returning()
+		if (isNaN(frameId)) {
+			return NextResponse.json({ error: "Invalid frame ID" }, { status: 400 });
+		}
 
-    if (deletedFrame.length === 0) {
-      return NextResponse.json(
-        { error: 'Frame not found' },
-        { status: 404 }
-      )
-    }
+		const deletedFrame = await db
+			.delete(frame)
+			.where(eq(frame.id, frameId))
+			.returning();
 
-    return NextResponse.json({ message: 'Frame deleted successfully' })
-  } catch (error) {
-    console.error('Error deleting frame:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete frame' },
-      { status: 500 }
-    )
-  }
+		if (deletedFrame.length === 0) {
+			return NextResponse.json({ error: "Frame not found" }, { status: 404 });
+		}
+
+		return NextResponse.json({ message: "Frame deleted successfully" });
+	} catch (error) {
+		console.error("Error deleting frame:", error);
+		return NextResponse.json(
+			{ error: "Failed to delete frame" },
+			{ status: 500 },
+		);
+	}
 }
+
