@@ -60,7 +60,6 @@ export default function FramePage({ frame }: Props) {
 	const router = useRouter();
 	const [isDragging, setIsDragging] = useState(false);
 
-	// Use TanStack Query for media operations
 	const {
 		data: mediaFiles = [],
 		isLoading: isLoadingMedia,

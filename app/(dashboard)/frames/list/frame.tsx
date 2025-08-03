@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
+import { Dispatch, SetStateAction, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { DotsThreeCircleIcon } from "@phosphor-icons/react/dist/ssr/DotsThreeCircle";
@@ -37,11 +37,7 @@ export default function Frame({
 }: Props) {
 	const router = useRouter();
 
-	const {
-		data: mediaFiles = [],
-		isLoading: isLoadingMedia,
-		error: mediaError,
-	} = useMedia(frame.frameId);
+	const { data: mediaFiles = [] } = useMedia(frame.frameId);
 
 	const handleSelectFrame = (frameId: number) => {
 		setSelectedFrames((prev) =>
@@ -155,7 +151,7 @@ export default function Frame({
 						{getStatusBadge(frame.status)}
 					</div>
 
-					{frame.status !== "offline" && (
+					{frame.status !== "offline" && frame.updatedAt && (
 						<div className="flex items-center gap-1 text-sm text-muted-foreground">
 							<ClockIcon className="size-4" />
 							Last sync: {getRelativeTime(frame.updatedAt)}
