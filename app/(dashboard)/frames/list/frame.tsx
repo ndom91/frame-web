@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { DotsThreeCircleIcon } from "@phosphor-icons/react/dist/ssr/DotsThreeCircle";
@@ -21,6 +21,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Frame } from "@/lib/types";
+import { useMedia } from "@/app/lib/queries/media";
+import { getRelativeTime } from "@/lib/utils";
 
 interface Props {
 	frame: Frame;
@@ -34,6 +36,12 @@ export default function Frame({
 	setSelectedFrames,
 }: Props) {
 	const router = useRouter();
+
+	const {
+		data: mediaFiles = [],
+		isLoading: isLoadingMedia,
+		error: mediaError,
+	} = useMedia(frame.frameId);
 
 	const handleSelectFrame = (frameId: number) => {
 		setSelectedFrames((prev) =>
@@ -75,6 +83,11 @@ export default function Frame({
 			</Badge>
 		);
 	};
+
+	const randomIndex = useMemo(() => {
+		return Math.floor(Math.random() * mediaFiles.length);
+	}, [mediaFiles.length]);
+
 	return (
 		<Card key={frame.id} className="overflow-hidden gap-0 py-4">
 			<CardHeader className="px-4">
@@ -119,10 +132,14 @@ export default function Frame({
 			<CardContent className="flex flex-col space-y-3 h-full px-4">
 				<div className="relative overflow-hidden rounded-lg bg-muted flex-1">
 					<Image
-						fill={true}
-						src={frame.currentImage || "https://unsplash.it/300/200?random"}
+						src={
+							mediaFiles[randomIndex].url ||
+							"https://unsplash.it/300/200?random"
+						}
+						width={300}
+						height={200}
 						alt={`Current display on ${frame.title}`}
-						className="h-32 w-full object-cover relative!"
+						className="h-56 object-cover object-center relative!"
 					/>
 					<div className="absolute top-2 right-2 rounded-md bg-stone-200/70 p-1">
 						{getStatusIcon(frame.status)}
@@ -141,7 +158,7 @@ export default function Frame({
 					{frame.status !== "offline" && (
 						<div className="flex items-center gap-1 text-sm text-muted-foreground">
 							<ClockIcon className="size-4" />
-							Last sync: {frame.lastSync}
+							Last sync: {getRelativeTime(frame.updatedAt)}
 						</div>
 					)}
 				</div>
