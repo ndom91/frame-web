@@ -297,7 +297,7 @@ export default function FileManager() {
 								</h3>
 								<div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
 									<span>{file.size}</span>
-									<span>{file.lastModified}</span>
+									<span>{file.lastmodified}</span>
 								</div>
 							</div>
 						</CardContent>

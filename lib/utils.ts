@@ -35,3 +35,68 @@ export function camelCaseKeys<T>(obj: T): T {
 	}
 	return result as T;
 }
+
+export function getRelativeTime(date: Date) {
+	const now = new Date().getTime();
+	const diffInSeconds = Math.floor((now - date.getTime()) / 1000);
+	const isFuture = diffInSeconds < 0;
+	const absDiff = Math.abs(diffInSeconds);
+
+	const intervals = [
+		{ label: "year", seconds: 31536000 },
+		{ label: "month", seconds: 2592000 },
+		{ label: "week", seconds: 604800 },
+		{ label: "day", seconds: 86400 },
+		{ label: "hour", seconds: 3600 },
+		{ label: "minute", seconds: 60 },
+		{ label: "second", seconds: 1 },
+	];
+
+	// Handle "just now" case
+	if (absDiff < 30) {
+		return "just now";
+	}
+
+	// Find the appropriate interval
+	for (const interval of intervals) {
+		const count = Math.floor(absDiff / interval.seconds);
+		if (count >= 1) {
+			const plural = count !== 1 ? "s" : "";
+			const timeText = `${count} ${interval.label}${plural}`;
+			return isFuture ? `in ${timeText}` : `${timeText} ago`;
+		}
+	}
+
+	return "just now";
+}
+
+export const formatFileSize = (input: number | string | undefined) => {
+	if (!input) return;
+	let bytes: number;
+
+	if (typeof input === "string") {
+		bytes = parseInt(input);
+	} else {
+		bytes = input;
+	}
+	return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+};
+
+export const formatDate = (input: string | Date | undefined) => {
+	if (!input) return;
+	let date;
+
+	if (typeof input === "string") {
+		date = new Date(input);
+	} else {
+		date = input;
+	}
+
+	return date.toLocaleDateString("en-US", {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+};

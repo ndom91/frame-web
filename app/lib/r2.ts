@@ -4,10 +4,10 @@ export interface FileObject {
 	key: string;
 	name: string;
 	url: string;
-	lastModified: Date;
-	eTag: string;
+	lastmodified: Date;
+	etag: string;
 	size: number;
-	storageClass?: string;
+	storageclass?: string;
 }
 
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID!;
