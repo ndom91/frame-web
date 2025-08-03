@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import {
 	ArrowLeft,
 	Wifi,
@@ -11,12 +10,8 @@ import {
 	MapPin,
 	Upload,
 	MoreHorizontal,
-	Play,
 	RotateCcw,
 	Trash2,
-	Download,
-	Eye,
-	Calendar,
 	ImageIcon,
 } from "lucide-react";
 
@@ -36,7 +31,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import type { Frame } from "@/lib/types";
 import { FileObject } from "@/app/lib/r2";
-import { getRelativeTime } from "@/lib/utils";
+import { formatFileSize, getRelativeTime } from "@/lib/utils";
 
 interface Props {
 	frame: Frame;
@@ -47,6 +42,10 @@ export default function FramePage({ frame, files }: Props) {
 	// const params = useParams();
 	const router = useRouter();
 	// const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
+	const [isDragging, setIsDragging] = useState(false);
+	const [activeFiles, setActiveFiles] = useState(files);
+
+	const [isUploading, setIsUploading] = useState(false);
 
 	const getStatusIcon = (status: string | null) => {
 		if (!status) return;
@@ -82,10 +81,76 @@ export default function FramePage({ frame, files }: Props) {
 		);
 	};
 
+	const handleDragOver = useCallback((e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragging(true);
+	}, []);
+
+	const handleDragLeave = useCallback((e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		// Only set dragging to false if we're leaving the main container
+		if (e.currentTarget === e.target) {
+			setIsDragging(false);
+		}
+	}, []);
+
+	const handleDrop = useCallback((e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragging(false);
+
+		const droppedFiles = Array.from(e.dataTransfer.files);
+		const imageFiles = droppedFiles.filter((file) =>
+			file.type.startsWith("image/"),
+		);
+
+		if (imageFiles.length === 0) {
+			console.log("No valid image files found");
+			return;
+		}
+
+		handleFileUpload(imageFiles);
+	}, []);
+
+	const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const selectedFiles = Array.from(e.target.files || []);
+		const imageFiles = selectedFiles.filter((file) =>
+			file.type.startsWith("image/"),
+		);
+
+		if (imageFiles.length > 0) {
+			handleFileUpload(imageFiles);
+		}
+
+		// Reset input value
+		e.target.value = "";
+	};
+
+	const handleFileUpload = async (uploadedFiles: File[]) => {
+		setIsUploading(true);
+
+		try {
+			const newFiles = uploadedFiles.map((file, index) => ({
+				id: `uploaded-${Date.now()}-${index}`,
+				name: file.name,
+				size: formatFileSize(file.size),
+				lastmodified: "Just now",
+				url: URL.createObjectURL(file),
+			}));
+
+			setActiveFiles((prevFiles) => [...newFiles, ...prevFiles]);
+		} catch (error) {
+			console.error("Upload failed:", error);
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
 	const EmptyState = () => (
 		<div className="flex flex-col items-center justify-center py-16 px-4">
 			<div className="relative mb-6">
-				{/* Simple illustration using CSS and icons */}
 				<div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center relative overflow-hidden">
 					<div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50"></div>
 					<div className="relative">
@@ -96,7 +161,6 @@ export default function FramePage({ frame, files }: Props) {
 							<div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce"></div>
 						</div>
 					</div>
-					{/* Decorative elements */}
 					<div className="absolute top-2 right-2 w-4 h-4 bg-white/30 rounded-full"></div>
 					<div className="absolute bottom-3 left-3 w-3 h-3 bg-white/20 rounded-full"></div>
 					<div className="absolute top-1/2 left-2 w-2 h-2 bg-white/25 rounded-full"></div>
@@ -120,8 +184,25 @@ export default function FramePage({ frame, files }: Props) {
 	);
 
 	return (
-		<div className="container mx-auto p-6 space-y-6">
-			{/* Header Navigation */}
+		<div
+			className="container mx-auto p-6 space-y-6"
+			onDragOver={handleDragOver}
+			onDragLeave={handleDragLeave}
+			onDrop={handleDrop}
+		>
+			{isDragging && (
+				<div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+					<div className="bg-card border-2 border-dashed border-primary rounded-lg p-12 text-center max-w-md mx-4">
+						<Upload className="h-12 w-12 text-primary mx-auto mb-4" />
+						<h3 className="text-lg font-semibold mb-2">
+							Drop your images here
+						</h3>
+						<p className="text-muted-foreground text-sm">
+							Release to upload your image files
+						</p>
+					</div>
+				</div>
+			)}
 			<div className="flex items-center gap-4">
 				<Button variant="ghost" size="sm" onClick={() => router.back()}>
 					<ArrowLeft className="h-4 w-4 mr-2" />
@@ -129,9 +210,7 @@ export default function FramePage({ frame, files }: Props) {
 				</Button>
 			</div>
 
-			{/* Frame Header */}
 			<div className="grid gap-6 lg:grid-cols-3">
-				{/* Main Info */}
 				<div className="lg:col-span-2">
 					<Card>
 						<CardHeader>
@@ -197,7 +276,6 @@ export default function FramePage({ frame, files }: Props) {
 								{/* 	</div> */}
 								{/* </div> */}
 
-								{/* Quick Stats */}
 								<div className="space-y-4">
 									<h3 className="font-semibold">Quick Stats</h3>
 									<div className="space-y-3">
@@ -228,9 +306,7 @@ export default function FramePage({ frame, files }: Props) {
 					</Card>
 				</div>
 
-				{/* System Info */}
 				<div className="space-y-6">
-					{/* Battery & Storage */}
 					<Card>
 						<CardHeader>
 							<CardTitle className="text-lg">System Status</CardTitle>
@@ -291,7 +367,6 @@ export default function FramePage({ frame, files }: Props) {
 
 			<Separator />
 
-			{/* Media Management */}
 			<div className="space-y-6">
 				<div className="flex items-center justify-between">
 					<div>
@@ -301,20 +376,42 @@ export default function FramePage({ frame, files }: Props) {
 						</p>
 					</div>
 					<div className="flex gap-2">
-						{/* <Button variant="outline"> */}
-						{/* 	<Download className="h-4 w-4 mr-2" /> */}
-						{/* 	Export All */}
+						<Badge variant="secondary" className="text-sm">
+							{activeFiles.length} {activeFiles.length === 1 ? "file" : "files"}
+						</Badge>
+						{/* <Button onClick={() => router.push("/media/view")}> */}
+						{/* 	<Upload className="h-4 w-4 mr-2" /> */}
+						{/* 	Upload Media */}
 						{/* </Button> */}
-						<Button onClick={() => router.push("/media/view")}>
-							<Upload className="h-4 w-4 mr-2" />
-							Upload Media
-						</Button>
+
+						<div className="flex items-center gap-2">
+							{isUploading && (
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+									Uploading...
+								</div>
+							)}
+							<input
+								type="file"
+								multiple
+								accept="image/*"
+								onChange={handleFileInputChange}
+								className="hidden"
+								id="file-upload"
+							/>
+							<Button asChild variant="outline" size="sm">
+								<label htmlFor="file-upload" className="cursor-pointer">
+									<Upload className="h-4 w-4 mr-2" />
+									Upload Images
+								</label>
+							</Button>
+						</div>
 					</div>
 				</div>
 
-				{files.length > 0 ? (
+				{activeFiles.length > 0 ? (
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{files.map((item) => (
+						{activeFiles.map((item) => (
 							<ImageCard key={item.key} item={item} />
 						))}
 					</div>
