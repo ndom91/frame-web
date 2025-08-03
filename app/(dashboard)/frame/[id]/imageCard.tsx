@@ -22,11 +22,34 @@ import { formatFileSize, getRelativeTime } from "@/lib/utils";
 
 export default function ImageCard({ item }: { item: FileObject }) {
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
-	const [previewImage, setPreviewImage] = useState<FileObject>();
 
-	const showPreviewImage = (item: FileObject) => {
+	const handleDelete = (file: FileObject) => {
+		// TODO: Implement delete functionality
+		console.log("deleting", file.name);
+	};
+
+	const handleDownload = async () => {
+		const response = await fetch(item.url);
+		const blobImage = await response.blob();
+		const href = URL.createObjectURL(blobImage);
+
+		const a = document.createElement("a");
+		a.target = "_blank";
+		a.style.display = "none";
+		a.href = href;
+		a.download = item.name;
+
+		document.body.appendChild(a);
+		a.click();
+
+		// Firefox workaround
+		setTimeout(() => {
+			document.body.removeChild(a);
+		}, 0);
+	};
+
+	const showPreviewImage = () => {
 		setShowPreviewModal(true);
-		setPreviewImage(item);
 	};
 
 	return (
@@ -47,7 +70,7 @@ export default function ImageCard({ item }: { item: FileObject }) {
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
-								<DropdownMenuItem onClick={() => showPreviewImage(item)}>
+								<DropdownMenuItem onClick={showPreviewImage}>
 									<Eye className="h-4 w-4 mr-2" />
 									Preview
 								</DropdownMenuItem>
@@ -55,12 +78,15 @@ export default function ImageCard({ item }: { item: FileObject }) {
 								{/* 	<Play className="h-4 w-4 mr-2" /> */}
 								{/* 	Display Now */}
 								{/* </DropdownMenuItem> */}
-								<DropdownMenuItem>
+								<DropdownMenuItem onClick={handleDownload}>
 									<Download className="h-4 w-4 mr-2" />
 									Download
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem className="text-red-600">
+								<DropdownMenuItem
+									className="text-red-600"
+									onClick={() => handleDelete(item)}
+								>
 									<Trash2 className="h-4 w-4 mr-2" />
 									Delete
 								</DropdownMenuItem>
