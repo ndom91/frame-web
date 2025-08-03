@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
 	ArrowLeft,
 	Wifi,
@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 
 import ImageCard from "./imageCard";
-import { ClockCountdownIcon } from "@phosphor-icons/react/dist/ssr/ClockCountdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,23 +29,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import type { Frame } from "@/lib/types";
-import { FileObject } from "@/app/lib/r2";
-import { formatFileSize, getRelativeTime } from "@/lib/utils";
-import { uploadFile } from "@/app/lib/r2-actions";
+import { getRelativeTime } from "@/lib/utils";
+import { useMedia, useUploadMedia } from "@/app/lib/queries/media";
+import { toast } from "sonner";
 
 interface Props {
 	frame: Frame;
-	files: FileObject[];
 }
 
-export default function FramePage({ frame, files }: Props) {
-	// const params = useParams();
+export default function FramePage({ frame }: Props) {
 	const router = useRouter();
-	// const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
 	const [isDragging, setIsDragging] = useState(false);
-	const [activeFiles, setActiveFiles] = useState(files);
 
-	const [isUploading, setIsUploading] = useState(false);
+	// Use TanStack Query for media operations
+	const {
+		data: mediaFiles = [],
+		isLoading: isLoadingMedia,
+		error: mediaError,
+	} = useMedia(frame.frameId);
+
+	const uploadMedia = useUploadMedia();
 
 	const getStatusIcon = (status: string | null) => {
 		if (!status) return;
@@ -97,7 +99,7 @@ export default function FramePage({ frame, files }: Props) {
 		}
 	}, []);
 
-	const handleDrop = useCallback((e: React.DragEvent) => {
+	const handleDrop = (e: React.DragEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
 		setIsDragging(false);
@@ -113,7 +115,7 @@ export default function FramePage({ frame, files }: Props) {
 		}
 
 		handleFileUpload(imageFiles);
-	}, []);
+	};
 
 	const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selectedFiles = Array.from(e.target.files || []);
@@ -129,32 +131,28 @@ export default function FramePage({ frame, files }: Props) {
 	};
 
 	const handleFileUpload = async (files: File[]) => {
-		setIsUploading(true);
-
 		try {
-			console.log("Uploading files", files);
+			const uploadPromises = files.map((file) => {
+				const key = `${frame.frameId}/${file.name}`;
+				return uploadMedia.mutateAsync({ file, key });
+			});
 
-			const uploadedFiles = await Promise.all(
-				files.map((file) => {
-					return uploadFile(file, file.name);
-				}),
+			await Promise.all(uploadPromises);
+
+			toast.success(
+				`Successfully uploaded ${files.length} file${files.length > 1 ? "s" : ""}`,
 			);
-
-			console.log("Uploaded files", uploadedFiles);
-
-			// setActiveFiles((prevFiles) => [...newFiles, ...prevFiles]);
 		} catch (error) {
 			console.error("Upload failed:", error);
-		} finally {
-			setIsUploading(false);
+			toast.error("Failed to upload files. Please try again.");
 		}
 	};
 
 	const EmptyState = () => (
 		<div className="flex flex-col items-center justify-center py-16 px-4">
 			<div className="relative mb-6">
-				<div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center relative overflow-hidden">
-					<div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50"></div>
+				<div className="w-32 h-32 bg-gradient-to-br from-blue-300 to-purple-400 rounded-2xl flex items-center justify-center relative overflow-hidden">
+					<div className="absolute inset-0 bg-gradient-to-br from-blue-700/50 to-purple-700/50"></div>
 					<div className="relative">
 						<ImageIcon className="h-12 w-12 text-blue-400 mb-2" />
 						<div className="flex gap-1 justify-center">
@@ -168,7 +166,7 @@ export default function FramePage({ frame, files }: Props) {
 					<div className="absolute top-1/2 left-2 w-2 h-2 bg-white/25 rounded-full"></div>
 				</div>
 			</div>
-			<h3 className="text-xl font-semibold text-gray-900 mb-2">
+			<h3 className="text-xl font-semibold text-muted-foreground mb-2">
 				No media uploaded yet
 			</h3>
 			<p className="text-gray-500 text-center mb-6 max-w-sm">
@@ -379,15 +377,10 @@ export default function FramePage({ frame, files }: Props) {
 					</div>
 					<div className="flex gap-2">
 						<Badge variant="secondary" className="text-sm">
-							{activeFiles.length} {activeFiles.length === 1 ? "file" : "files"}
+							{mediaFiles.length} {mediaFiles.length === 1 ? "file" : "files"}
 						</Badge>
-						{/* <Button onClick={() => router.push("/media/view")}> */}
-						{/* 	<Upload className="h-4 w-4 mr-2" /> */}
-						{/* 	Upload Media */}
-						{/* </Button> */}
-
 						<div className="flex items-center gap-2">
-							{isUploading && (
+							{uploadMedia.isPending && (
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
 									<div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
 									Uploading...
@@ -411,9 +404,21 @@ export default function FramePage({ frame, files }: Props) {
 					</div>
 				</div>
 
-				{activeFiles.length > 0 ? (
+				{isLoadingMedia ? (
+					<div className="text-center py-12">
+						<div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+						<p className="text-muted-foreground">Loading media files...</p>
+					</div>
+				) : mediaError ? (
+					<div className="text-center py-12">
+						<p className="text-red-500 mb-2">Error loading media files</p>
+						<p className="text-muted-foreground text-sm">
+							{mediaError.message}
+						</p>
+					</div>
+				) : mediaFiles.length > 0 ? (
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{activeFiles.map((item) => (
+						{mediaFiles.map((item) => (
 							<ImageCard key={item.key} item={item} />
 						))}
 					</div>

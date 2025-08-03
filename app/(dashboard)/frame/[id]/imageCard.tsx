@@ -19,13 +19,15 @@ import { FileObject } from "@/app/lib/r2";
 import { useState } from "react";
 import PreviewDialog from "./previewDialog";
 import { formatFileSize, getRelativeTime } from "@/lib/utils";
+import { useDeleteMedia } from "@/app/lib/queries/media";
 
 export default function ImageCard({ item }: { item: FileObject }) {
+	console.log("IMAGE_CARD.item", item);
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
+	const deleteMedia = useDeleteMedia();
 
 	const handleDelete = (file: FileObject) => {
-		// TODO: Implement delete functionality
-		console.log("deleting", file.name);
+		deleteMedia.mutateAsync(file.key);
 	};
 
 	const handleDownload = async () => {

@@ -38,7 +38,10 @@ export function camelCaseKeys<T>(obj: T): T {
 
 export function getRelativeTime(date: Date) {
 	const now = new Date().getTime();
-	const diffInSeconds = Math.floor((now - date.getTime()) / 1000);
+	const isValidDate = date instanceof Date && !isNaN(date.getTime());
+	const diffInSeconds = Math.floor(
+		(now - (isValidDate ? date.getTime() : new Date(date).getTime())) / 1000,
+	);
 	const isFuture = diffInSeconds < 0;
 	const absDiff = Math.abs(diffInSeconds);
 

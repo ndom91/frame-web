@@ -13,25 +13,21 @@ import { camelCaseKeys } from "@/lib/utils";
 const R2_BUCKET = process.env.R2_BUCKET!;
 
 export async function uploadFile(file: File, key: string) {
-	// const command = new PutObjectCommand({
-	// 	Bucket: R2_BUCKET,
-	// 	Key: key,
-	// 	Body: file,
-	// })
-
-	const command = new PutObjectCommand({
-		Bucket: R2_BUCKET,
-		Key: key,
-		Body: file,
-		// Bucket: this.name,
-		// Key: destination,
-		// Body: contents,
-		ContentType: file.type || "application/octet-stream",
-		// Metadata: customMetadata,
-	});
-
 	try {
+		// Convert File to ArrayBuffer for AWS SDK compatibility
+		const arrayBuffer = await file.arrayBuffer();
+		const buffer = new Uint8Array(arrayBuffer);
+
+		const command = new PutObjectCommand({
+			Bucket: R2_BUCKET,
+			Key: key,
+			Body: buffer,
+			ContentType: file.type || "application/octet-stream",
+			ContentLength: file.size,
+		});
+
 		const response = await r2Client.send(command);
+		console.log("UPLOAD RESPONSE", response);
 		return response;
 	} catch (error) {
 		console.error("Error uploading file:", error);
