@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Frame from "./frame";
 import { useFrames } from "@/app/lib/queries/frames";
-import { type Frame as FrameType } from "@/app/lib/queries/frames";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -66,7 +65,9 @@ export default function FramesPage() {
 		return (
 			<div className="container mx-auto p-6">
 				<div className="text-center py-12">
-					<h3 className="text-lg font-semibold mb-2 text-red-500">Error loading frames</h3>
+					<h3 className="text-lg font-semibold mb-2 text-red-500">
+						Error loading frames
+					</h3>
 					<p className="text-muted-foreground">{error.message}</p>
 				</div>
 			</div>

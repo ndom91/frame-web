@@ -3,8 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Logo from "./logo.png";
-import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
-// import { ImagesIcon } from "@phosphor-icons/react/dist/ssr/Images";
+import { ImagesIcon } from "@phosphor-icons/react/dist/ssr/Images";
 // import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/ssr/PaperPlaneTilt";
 // import { LifebuoyIcon } from "@phosphor-icons/react/dist/ssr/Lifebuoy";
 
@@ -21,27 +20,13 @@ import {
 	SidebarRail,
 } from "@/components/ui/sidebar";
 import { type Session } from "@/app/lib/auth";
+import { NavFrames } from "@/components/nav-frames";
 
 const data = {
 	navMain: [
-		// {
-		//   title: "Media",
-		//   icon: ImagesIcon,
-		//   isActive: true,
-		//   items: [
-		//     {
-		//       title: "Files",
-		//       url: "/media/view",
-		//     },
-		//     {
-		//       title: "Settings",
-		//       url: "/media/settings",
-		//     },
-		//   ],
-		// },
 		{
 			title: "Frames",
-			icon: FrameCornersIcon,
+			icon: ImagesIcon,
 			isActive: true,
 			items: [
 				{
@@ -63,7 +48,7 @@ type Props = {
 
 export function AppSidebar({ ...props }: Props) {
 	return (
-		<Sidebar collapsible="icon" {...props}>
+		<Sidebar {...props}>
 			<SidebarHeader>
 				<SidebarMenu>
 					<SidebarMenuItem>
@@ -73,8 +58,8 @@ export function AppSidebar({ ...props }: Props) {
 									<Image
 										src={Logo}
 										alt="Frame Logo"
-										width={48}
-										height={48}
+										width={36}
+										height={36}
 										className="invert"
 									/>
 								</div>
@@ -89,7 +74,7 @@ export function AppSidebar({ ...props }: Props) {
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={data.navMain} />
-				{/* <NavProjects projects={data.projects} /> */}
+				<NavFrames />
 			</SidebarContent>
 			<SidebarFooter>
 				{props.session?.user && <NavUser user={props.session?.user} />}

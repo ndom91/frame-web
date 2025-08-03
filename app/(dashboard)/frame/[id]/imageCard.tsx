@@ -22,7 +22,6 @@ import { formatFileSize, getRelativeTime } from "@/lib/utils";
 import { useDeleteMedia } from "@/app/lib/queries/media";
 
 export default function ImageCard({ item }: { item: FileObject }) {
-	console.log("IMAGE_CARD.item", item);
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
 	const deleteMedia = useDeleteMedia();
 

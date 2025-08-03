@@ -1,4 +1,4 @@
-import CardSkeleton from "@/app/components/card-skeleton";
+import CardSkeleton from "@/components/card-skeleton";
 
 export default function Loading() {
 	return (

@@ -1,12 +1,4 @@
 import { AppSidebar } from "@/components/app-sidebar";
-// import {
-// 	Breadcrumb,
-// 	BreadcrumbItem,
-// 	BreadcrumbLink,
-// 	BreadcrumbList,
-// 	BreadcrumbPage,
-// 	BreadcrumbSeparator,
-// } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import {
 	SidebarInset,
@@ -23,19 +15,19 @@ export default async function Layout({
 }: {
 	children: React.ReactNode;
 }) {
-	let session: Session | Record<string, unknown> | null = {};
+	let session: Session | null = null;
 
 	try {
 		session = await auth.api.getSession({
 			headers: await headers(),
 		});
+
+		if (!session) {
+			redirect("/login");
+		}
 	} catch (e) {
 		console.error("Session Error", e);
 		if (e) redirect("/login");
-	}
-
-	if (!session) {
-		redirect("/login");
 	}
 
 	return (

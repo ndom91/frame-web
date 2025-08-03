@@ -37,6 +37,25 @@ interface Props {
 	frame: Frame;
 }
 
+export const getStatusBadge = (status: string | null) => {
+	if (!status) return;
+
+	const variants = {
+		online: "bg-lime-100 text-lime-800 border-lime-200",
+		offline: "bg-rose-100 text-rose-800 border-rose-200",
+		syncing: "bg-sky-100 text-sky-800 border-sky-200",
+	};
+
+	return (
+		<Badge
+			variant="outline"
+			className={variants[status as keyof typeof variants]}
+		>
+			{status.charAt(0).toUpperCase() + status.slice(1)}
+		</Badge>
+	);
+};
+
 export default function FramePage({ frame }: Props) {
 	const router = useRouter();
 	const [isDragging, setIsDragging] = useState(false);
@@ -55,33 +74,14 @@ export default function FramePage({ frame }: Props) {
 
 		switch (status) {
 			case "online":
-				return <Wifi className="h-5 w-5 text-green-500" />;
+				return <Wifi className="h-5 w-5 text-lime-500" />;
 			case "offline":
-				return <WifiOff className="h-5 w-5 text-red-500" />;
+				return <WifiOff className="h-5 w-5 text-rose-500" />;
 			case "syncing":
-				return <Monitor className="h-5 w-5 text-blue-500 animate-pulse" />;
+				return <Monitor className="h-5 w-5 text-sky-500 animate-pulse" />;
 			default:
 				return <WifiOff className="h-5 w-5 text-gray-400" />;
 		}
-	};
-
-	const getStatusBadge = (status: string | null) => {
-		if (!status) return;
-
-		const variants = {
-			online: "bg-lime-100 text-lime-800 border-lime-200",
-			offline: "bg-rose-100 text-rose-800 border-rose-200",
-			syncing: "bg-sky-100 text-sky-800 border-sky-200",
-		};
-
-		return (
-			<Badge
-				variant="outline"
-				className={variants[status as keyof typeof variants]}
-			>
-				{status.charAt(0).toUpperCase() + status.slice(1)}
-			</Badge>
-		);
 	};
 
 	const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -93,7 +93,7 @@ export default function FramePage({ frame }: Props) {
 	const handleDragLeave = useCallback((e: React.DragEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
-		// Only set dragging to false if we're leaving the main container
+
 		if (e.currentTarget === e.target) {
 			setIsDragging(false);
 		}
