@@ -8,30 +8,30 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	// DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { formatFileSize, getRelativeTime } from "@/lib/utils";
 
 export default function PreviewDialog({ image }: { image: FileObject }) {
 	return (
 		<Dialog defaultOpen={true}>
 			<form>
-				{/* <DialogTrigger asChild> */}
-				{/* 	<Button variant="outline">Open Dialog</Button> */}
-				{/* </DialogTrigger> */}
 				<DialogContent className="sm:max-w-[425px]">
 					<DialogHeader>
-						<DialogTitle>Image Preview</DialogTitle>
-						<DialogDescription>
-							<img src={image.url} alt={image.name} />
+						<DialogTitle>{image.name}</DialogTitle>
+						<DialogDescription className="flex justify-between w-full">
+							<span>{formatFileSize(image.size)}</span>
+							<span>{getRelativeTime(image.lastmodified)}</span>
 						</DialogDescription>
 					</DialogHeader>
+					<div className="flex">
+						{/* eslint-disable-next-line @next/next/no-img-element */}
+						<img src={image.url} alt={image.name} />
+					</div>
 					<DialogFooter>
 						<DialogClose asChild>
-							<Button variant="outline">Cancel</Button>
+							<Button variant="outline">Close</Button>
 						</DialogClose>
-						<Button type="submit">Save changes</Button>
+						{/* <Button type="submit">Save changes</Button> */}
 					</DialogFooter>
 				</DialogContent>
 			</form>

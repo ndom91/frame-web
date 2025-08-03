@@ -36,6 +36,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import type { Frame } from "@/lib/types";
 import { FileObject } from "@/app/lib/r2";
+import { getRelativeTime } from "@/lib/utils";
 
 interface Props {
 	frame: Frame;
@@ -43,9 +44,9 @@ interface Props {
 }
 
 export default function FramePage({ frame, files }: Props) {
-	const params = useParams();
+	// const params = useParams();
 	const router = useRouter();
-	const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
+	// const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
 
 	const getStatusIcon = (status: string | null) => {
 		if (!status) return;
@@ -161,11 +162,10 @@ export default function FramePage({ frame, files }: Props) {
 									<DropdownMenuContent align="end">
 										<DropdownMenuItem
 											title="Coming Soon"
-											className="hover:cursor-disabled"
+											className="hover:cursor-not-allowed"
 										>
 											<RotateCcw className="h-4 w-4 mr-2" />
 											Restart Frame
-											<ClockCountdownIcon className="size-5 text-stone-300/40" />
 										</DropdownMenuItem>
 										<DropdownMenuSeparator />
 										<DropdownMenuItem className="text-red-600">
@@ -179,23 +179,23 @@ export default function FramePage({ frame, files }: Props) {
 						<CardContent>
 							<div className="grid gap-6 md:grid-cols-2">
 								{/* Current Display */}
-								<div className="space-y-3">
-									<h3 className="font-semibold">Current Display</h3>
-									<div className="relative overflow-hidden rounded-lg bg-muted">
-										<Image
-											fill={true}
-											src={frame.currentImage || "/placeholder.svg"}
-											alt="Current display"
-											className="h-48 w-full object-cover"
-										/>
-										<div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-											<Button size="sm" variant="secondary">
-												<Eye className="h-4 w-4 mr-2" />
-												Preview
-											</Button>
-										</div>
-									</div>
-								</div>
+								{/* <div className="space-y-3"> */}
+								{/* 	<h3 className="font-semibold">Current Display</h3> */}
+								{/* 	<div className="relative overflow-hidden rounded-lg bg-muted"> */}
+								{/* 		<Image */}
+								{/* 			fill={true} */}
+								{/* 			src={frame.currentImage || "/placeholder.svg"} */}
+								{/* 			alt="Current display" */}
+								{/* 			className="h-48 w-full object-cover" */}
+								{/* 		/> */}
+								{/* 		<div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"> */}
+								{/* 			<Button size="sm" variant="secondary"> */}
+								{/* 				<Eye className="h-4 w-4 mr-2" /> */}
+								{/* 				Preview */}
+								{/* 			</Button> */}
+								{/* 		</div> */}
+								{/* 	</div> */}
+								{/* </div> */}
 
 								{/* Quick Stats */}
 								<div className="space-y-4">
@@ -206,16 +206,19 @@ export default function FramePage({ frame, files }: Props) {
 												Last Sync
 											</span>
 											<span className="text-sm font-medium">
-												{frame.lastSync}
+												{frame.lastSync ?? "N/A"}
 											</span>
 										</div>
 										<div className="flex items-center justify-between">
 											<span className="text-sm text-muted-foreground">
 												Uptime
 											</span>
-											<span className="text-sm font-medium">
+											<span
+												className="text-sm font-medium"
+												title={new Date("2025-07-27T16:32:12").toLocaleString()}
+											>
 												{/* {frame.uptime} */}
-												12 days 3 hrs
+												{getRelativeTime(new Date("2025-07-27T16:32:12"))}
 											</span>
 										</div>
 									</div>
@@ -237,13 +240,12 @@ export default function FramePage({ frame, files }: Props) {
 								<div className="flex items-center justify-between">
 									<span className="text-sm font-medium">Storage</span>
 									<span className="text-sm text-muted-foreground">
-										{/* {frame.storageUsed}GB / {frame.storageTotal}GB */}
-										2GB / 12GB
+										1.5GB / 32GB
 									</span>
 								</div>
 								<Progress
 									// value={(frame.storageUsed / frame.storageTotal) * 100}
-									value={64}
+									value={4.6}
 									className="h-2"
 								/>
 							</div>

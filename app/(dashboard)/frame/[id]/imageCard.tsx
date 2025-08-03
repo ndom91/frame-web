@@ -1,18 +1,10 @@
 import {
-	ArrowLeft,
-	Wifi,
-	WifiOff,
-	Monitor,
-	MapPin,
-	Upload,
 	MoreHorizontal,
-	Play,
-	RotateCcw,
 	Trash2,
 	Download,
 	Eye,
 	Calendar,
-	ImageIcon,
+	File,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,11 +14,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { FileObject } from "@/app/lib/r2";
 import { useState } from "react";
 import PreviewDialog from "./previewDialog";
+import { formatFileSize, getRelativeTime } from "@/lib/utils";
 
 export default function ImageCard({ item }: { item: FileObject }) {
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -35,37 +27,6 @@ export default function ImageCard({ item }: { item: FileObject }) {
 	const showPreviewImage = (item: FileObject) => {
 		setShowPreviewModal(true);
 		setPreviewImage(item);
-	};
-
-	const formatFileSize = (input: number | string | undefined) => {
-		if (!input) return;
-		let bytes: number;
-
-		if (typeof input === "string") {
-			bytes = parseInt(input);
-		} else {
-			bytes = input;
-		}
-		return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-	};
-
-	const formatDate = (input: string | Date | undefined) => {
-		if (!input) return;
-		let date;
-
-		if (typeof input === "string") {
-			date = new Date(input);
-		} else {
-			date = input;
-		}
-
-		return date.toLocaleDateString("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-		});
 	};
 
 	return (
@@ -110,10 +71,16 @@ export default function ImageCard({ item }: { item: FileObject }) {
 				<CardContent className="p-3">
 					<h4 className="font-medium text-sm truncate">{item.name}</h4>
 					<div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-						<span>{formatFileSize(item.size)}</span>
-						<span className="flex items-center gap-1">
-							<Calendar className="h-3 w-3" />
-							{formatDate(item.lastModified)}
+						<span className="flex items-start gap-1 text-sm">
+							<File className="size-4" />
+							{formatFileSize(item.size)}
+						</span>
+						<span
+							className="flex items-start gap-1 text-sm "
+							title={item.lastmodified.toLocaleString()}
+						>
+							<Calendar className="size-4" />
+							{getRelativeTime(item.lastmodified)}
 						</span>
 					</div>
 				</CardContent>
