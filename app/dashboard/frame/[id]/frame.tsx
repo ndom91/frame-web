@@ -8,9 +8,7 @@ import {
 	Wifi,
 	WifiOff,
 	Monitor,
-	// Battery,
 	MapPin,
-	Settings,
 	Upload,
 	MoreHorizontal,
 	Play,
@@ -22,6 +20,7 @@ import {
 	ImageIcon,
 } from "lucide-react";
 
+import ImageCard from "./imageCard";
 import { ClockCountdownIcon } from "@phosphor-icons/react/dist/ssr/ClockCountdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,104 +34,13 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Frame } from "@/lib/types";
+import { FileObject } from "@/app/lib/r2";
 
 interface Props {
 	frame: Frame;
 	files: FileObject[];
 }
-
-// interface MediaItem {
-//   id: string
-//   name: string
-//   url: string
-//   type: "image" | "video"
-//   size: number
-//   uploadedAt: string
-//   isActive: boolean
-//   duration?: number
-// }
-
-// interface FrameDetails {
-//   id: string
-//   name: string
-//   model: string
-//   status: "online" | "offline" | "syncing"
-//   location: string
-//   lastSync: string
-//   batteryLevel?: number
-//   resolution: string
-//   orientation: "landscape" | "portrait"
-//   currentImage: string
-//   serialNumber: string
-//   firmwareVersion: string
-//   storageUsed: number
-//   storageTotal: number
-//   wifiSignal: number
-//   temperature: number
-//   uptime: string
-// }
-
-// Mock data - in real app this would come from API
-// const mockFrame: FrameDetails = {
-//   id: "1",
-//   name: "Living Room Display",
-//   model: "FramePro 15",
-//   status: "online",
-//   location: "Living Room",
-//   lastSync: "2 minutes ago",
-//   batteryLevel: 85,
-//   resolution: "1920x1080",
-//   orientation: "landscape",
-//   currentImage: "/placeholder.svg?height=400&width=600",
-//   serialNumber: "FP15-2024-001234",
-//   firmwareVersion: "2.1.4",
-//   storageUsed: 2.4,
-//   storageTotal: 8.0,
-//   wifiSignal: 85,
-//   temperature: 24,
-//   uptime: "7 days, 14 hours",
-// }
-
-// const mockMedia: MediaItem[] = [
-//   {
-//     id: "1",
-//     name: "family-vacation-2024.jpg",
-//     url: "/placeholder.svg?height=200&width=300",
-//     type: "image",
-//     size: 2.4,
-//     uploadedAt: "2024-01-15T10:30:00Z",
-//     isActive: true,
-//   },
-//   {
-//     id: "2",
-//     name: "sunset-beach.jpg",
-//     url: "/placeholder.svg?height=200&width=300",
-//     type: "image",
-//     size: 1.8,
-//     uploadedAt: "2024-01-14T15:45:00Z",
-//     isActive: false,
-//   },
-//   {
-//     id: "3",
-//     name: "birthday-party.jpg",
-//     url: "/placeholder.svg?height=200&width=300",
-//     type: "image",
-//     size: 3.1,
-//     uploadedAt: "2024-01-13T09:20:00Z",
-//     isActive: false,
-//   },
-//   {
-//     id: "4",
-//     name: "wedding-memories.jpg",
-//     url: "/placeholder.svg?height=200&width=300",
-//     type: "image",
-//     size: 2.7,
-//     uploadedAt: "2024-01-12T18:15:00Z",
-//     isActive: false,
-//   },
-// ]
 
 export default function FramePage({ frame, files }: Props) {
 	const params = useParams();
@@ -171,20 +79,6 @@ export default function FramePage({ frame, files }: Props) {
 				{status.charAt(0).toUpperCase() + status.slice(1)}
 			</Badge>
 		);
-	};
-
-	const formatFileSize = (bytes: number) => {
-		return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-	};
-
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-		});
 	};
 
 	const EmptyState = () => (
@@ -416,160 +310,15 @@ export default function FramePage({ frame, files }: Props) {
 					</div>
 				</div>
 
-				<Tabs defaultValue="all" className="space-y-4">
-					<TabsList>
-						<TabsTrigger value="all">All Media ({files.length})</TabsTrigger>
-						<TabsTrigger value="active">Currently Playing</TabsTrigger>
-						<TabsTrigger value="recent">Recently Added</TabsTrigger>
-					</TabsList>
-
-					<TabsContent value="all" className="space-y-4">
-						{files.length > 0 ? (
-							<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-								{files.map((item) => (
-									<Card
-										key={item.Key}
-										className="overflow-hidden gap-2 pt-0 pb-2"
-									>
-										<div className="relative">
-											{/* eslint-disable-next-line @next/next/no-img-element */}
-											<img
-												alt="Image"
-												src={`https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.Key}`}
-												className="h-36 w-full object-cover object-center"
-											/>
-											{item.isActive && (
-												<div className="absolute top-2 left-2">
-													<Badge className="bg-green-500 text-white">
-														<Play className="h-3 w-3 mr-1" />
-														Playing
-													</Badge>
-												</div>
-											)}
-											<div className="absolute top-2 right-2">
-												<DropdownMenu>
-													<DropdownMenuTrigger asChild>
-														<Button variant="secondary" size="sm">
-															<MoreHorizontal className="h-4 w-4" />
-														</Button>
-													</DropdownMenuTrigger>
-													<DropdownMenuContent align="end">
-														<DropdownMenuItem>
-															<Eye className="h-4 w-4 mr-2" />
-															Preview
-														</DropdownMenuItem>
-														<DropdownMenuItem>
-															<Play className="h-4 w-4 mr-2" />
-															Display Now
-														</DropdownMenuItem>
-														<DropdownMenuItem>
-															<Download className="h-4 w-4 mr-2" />
-															Download
-														</DropdownMenuItem>
-														<DropdownMenuSeparator />
-														<DropdownMenuItem className="text-red-600">
-															<Trash2 className="h-4 w-4 mr-2" />
-															Delete
-														</DropdownMenuItem>
-													</DropdownMenuContent>
-												</DropdownMenu>
-											</div>
-										</div>
-										<CardContent className="p-3">
-											<h4 className="font-medium text-sm truncate">
-												{item.name}
-											</h4>
-											<div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-												<span>{formatFileSize(item.Size)}</span>
-												<span className="flex items-center gap-1">
-													<Calendar className="h-3 w-3" />
-													{formatDate(item.LastModified)}
-												</span>
-											</div>
-										</CardContent>
-									</Card>
-								))}
-							</div>
-						) : (
-							<EmptyState />
-						)}
-					</TabsContent>
-
-					<TabsContent value="active">
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-							{files
-								.filter((item) => item.isActive)
-								.map((item) => (
-									<Card key={item.Key} className="overflow-hidden">
-										<div className="relative">
-											{/* eslint-disable-next-line @next/next/no-img-element */}
-											<img
-												src={`https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.Key}`}
-												alt={item.name}
-												className="h-32 w-full object-cover"
-											/>
-											<div className="absolute top-2 left-2">
-												<Badge className="bg-green-500 text-white">
-													<Play className="h-3 w-3 mr-1" />
-													Playing
-												</Badge>
-											</div>
-										</div>
-										<CardContent className="p-3">
-											<h4 className="font-medium text-sm truncate">
-												{item.name}
-											</h4>
-											<div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-												<span>{formatFileSize(item.Size)}</span>
-												<span>{formatDate(item.LastModified)}</span>
-											</div>
-										</CardContent>
-									</Card>
-								))}
-						</div>
-					</TabsContent>
-
-					<TabsContent value="recent">
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-							{files
-								.sort(
-									(a, b) =>
-										new Date(b.uploadedAt).getTime() -
-										new Date(a.uploadedAt).getTime(),
-								)
-								.slice(0, 8)
-								.map((item) => (
-									<Card key={item.Key} className="overflow-hidden">
-										<div className="relative">
-											{/* eslint-disable-next-line @next/next/no-img-element */}
-											<img
-												src={`https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.Key}`}
-												alt={item.name}
-												className="h-32 w-full object-cover"
-											/>
-											{item.isActive && (
-												<div className="absolute top-2 left-2">
-													<Badge className="bg-green-500 text-white">
-														<Play className="h-3 w-3 mr-1" />
-														Playing
-													</Badge>
-												</div>
-											)}
-										</div>
-										<CardContent className="p-3">
-											<h4 className="font-medium text-sm truncate">
-												{item.name}
-											</h4>
-											<div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-												<span>{formatFileSize(item.Size)}</span>
-												<span>{formatDate(item.LastModified)}</span>
-											</div>
-										</CardContent>
-									</Card>
-								))}
-						</div>
-					</TabsContent>
-				</Tabs>
+				{files.length > 0 ? (
+					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						{files.map((item) => (
+							<ImageCard key={item.key} item={item} />
+						))}
+					</div>
+				) : (
+					<EmptyState />
+				)}
 			</div>
 		</div>
 	);
