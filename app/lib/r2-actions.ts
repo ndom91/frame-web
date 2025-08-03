@@ -12,11 +12,22 @@ import { camelCaseKeys } from "@/lib/utils";
 
 const R2_BUCKET = process.env.R2_BUCKET!;
 
-export async function uploadFile(file: Buffer, key: string) {
+export async function uploadFile(file: File, key: string) {
+	// const command = new PutObjectCommand({
+	// 	Bucket: R2_BUCKET,
+	// 	Key: key,
+	// 	Body: file,
+	// })
+
 	const command = new PutObjectCommand({
 		Bucket: R2_BUCKET,
 		Key: key,
 		Body: file,
+		// Bucket: this.name,
+		// Key: destination,
+		// Body: contents,
+		ContentType: file.type || "application/octet-stream",
+		// Metadata: customMetadata,
 	});
 
 	try {
@@ -76,11 +87,11 @@ export async function listFiles(prefix: string = ""): Promise<FileObject[]> {
 		const response = await r2Client.send(command);
 		return (
 			response.Contents?.map((image) => {
-				return camelCaseKeys<FileObject>({
-					...image,
+				return {
+					...camelCaseKeys(image),
 					name: image.Key?.split("/").pop() ?? "",
 					url: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${image.Key}`,
-				});
+				} as FileObject;
 			}) || []
 		);
 	} catch (error) {

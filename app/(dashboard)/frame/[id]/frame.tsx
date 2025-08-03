@@ -32,6 +32,7 @@ import { Progress } from "@/components/ui/progress";
 import type { Frame } from "@/lib/types";
 import { FileObject } from "@/app/lib/r2";
 import { formatFileSize, getRelativeTime } from "@/lib/utils";
+import { uploadFile } from "@/app/lib/r2-actions";
 
 interface Props {
 	frame: Frame;
@@ -124,23 +125,24 @@ export default function FramePage({ frame, files }: Props) {
 			handleFileUpload(imageFiles);
 		}
 
-		// Reset input value
 		e.target.value = "";
 	};
 
-	const handleFileUpload = async (uploadedFiles: File[]) => {
+	const handleFileUpload = async (files: File[]) => {
 		setIsUploading(true);
 
 		try {
-			const newFiles = uploadedFiles.map((file, index) => ({
-				id: `uploaded-${Date.now()}-${index}`,
-				name: file.name,
-				size: formatFileSize(file.size),
-				lastmodified: "Just now",
-				url: URL.createObjectURL(file),
-			}));
+			console.log("Uploading files", files);
 
-			setActiveFiles((prevFiles) => [...newFiles, ...prevFiles]);
+			const uploadedFiles = await Promise.all(
+				files.map((file) => {
+					return uploadFile(file, file.name);
+				}),
+			);
+
+			console.log("Uploaded files", uploadedFiles);
+
+			// setActiveFiles((prevFiles) => [...newFiles, ...prevFiles]);
 		} catch (error) {
 			console.error("Upload failed:", error);
 		} finally {

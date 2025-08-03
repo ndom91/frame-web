@@ -17,6 +17,7 @@ const R2_REGION = process.env.R2_REGION!;
 // const R2_DEV_URL = process.env.R2_DEV_URL!
 
 export const r2Client = new S3Client({
+	requestStreamBufferSize: 64 * 1024,
 	region: R2_REGION ? R2_REGION : "auto",
 	endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
 	credentials: {
