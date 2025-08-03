@@ -24,7 +24,6 @@ export type UploadWithPresignedUrlData = {
 	key: string;
 };
 
-// Hook to fetch media files with optional prefix filtering
 export function useMedia(prefix: string = "") {
 	return useQuery({
 		queryKey: ["media", prefix],
@@ -43,7 +42,6 @@ export function useMedia(prefix: string = "") {
 	});
 }
 
-// Hook to upload files directly through API
 export function useUploadMedia() {
 	const queryClient = useQueryClient();
 
@@ -53,7 +51,6 @@ export function useUploadMedia() {
 			formData.append("file", file);
 			formData.append("key", key);
 
-			console.log("uploading", formData);
 			const response = await fetch("/api/media", {
 				method: "POST",
 				body: formData,
@@ -67,7 +64,6 @@ export function useUploadMedia() {
 			return response.json();
 		},
 		onSuccess: (newFile, variables) => {
-			// Update all media queries that might include this file
 			queryClient.setQueryData(
 				["media", ""],
 				(old: MediaFile[] | undefined) => {
@@ -75,7 +71,6 @@ export function useUploadMedia() {
 				},
 			);
 
-			// Also update any prefix-specific queries
 			const prefix = variables.key?.split("/")[0] || "uploads";
 			queryClient.setQueryData(
 				["media", prefix],
@@ -84,13 +79,11 @@ export function useUploadMedia() {
 				},
 			);
 
-			// Invalidate all media queries to ensure consistency
 			queryClient.invalidateQueries({ queryKey: ["media"] });
 		},
 	});
 }
 
-// Hook to get presigned upload URL (for client-side uploads)
 export function useGetUploadUrl() {
 	return useMutation({
 		mutationFn: async ({
@@ -118,7 +111,6 @@ export function useGetUploadUrl() {
 	});
 }
 
-// Hook to upload using presigned URL (more efficient for large files)
 export function useUploadWithPresignedUrl() {
 	const queryClient = useQueryClient();
 	const getUploadUrl = useGetUploadUrl();
@@ -128,16 +120,13 @@ export function useUploadWithPresignedUrl() {
 			file,
 			key,
 		}: UploadWithPresignedUrlData): Promise<MediaFile> => {
-			// Generate key if not provided
 			const fileKey = key || `uploads/${Date.now()}-${file.name}`;
 
-			// Get presigned URL
 			const { uploadUrl, fileUrl } = await getUploadUrl.mutateAsync({
 				key: fileKey,
 				contentType: file.type,
 			});
 
-			// Upload directly to R2
 			const uploadResponse = await fetch(uploadUrl, {
 				method: "PUT",
 				body: file,
@@ -150,7 +139,6 @@ export function useUploadWithPresignedUrl() {
 				throw new Error("Failed to upload file to storage");
 			}
 
-			// Return file info
 			return {
 				key: fileKey,
 				name: file.name,
@@ -162,7 +150,6 @@ export function useUploadWithPresignedUrl() {
 			};
 		},
 		onSuccess: (newFile, variables) => {
-			// Update cache same as direct upload
 			queryClient.setQueryData(
 				["media", ""],
 				(old: MediaFile[] | undefined) => {
@@ -183,7 +170,6 @@ export function useUploadWithPresignedUrl() {
 	});
 }
 
-// Hook to delete media files
 export function useDeleteMedia() {
 	const queryClient = useQueryClient();
 
@@ -200,7 +186,6 @@ export function useDeleteMedia() {
 			}
 		},
 		onSuccess: (_, deletedKey) => {
-			// Remove file from all relevant cache entries
 			queryClient.setQueryData(
 				["media", ""],
 				(old: MediaFile[] | undefined) => {
@@ -208,7 +193,6 @@ export function useDeleteMedia() {
 				},
 			);
 
-			// Update prefix-specific queries
 			const prefix = deletedKey.split("/")[0];
 			queryClient.setQueryData(
 				["media", prefix],
@@ -217,13 +201,11 @@ export function useDeleteMedia() {
 				},
 			);
 
-			// Invalidate all media queries
 			queryClient.invalidateQueries({ queryKey: ["media"] });
 		},
 	});
 }
 
-// Hook to get download URL for a file
 export function useGetDownloadUrl() {
 	return useMutation({
 		mutationFn: async (key: string): Promise<string> => {
@@ -241,13 +223,11 @@ export function useGetDownloadUrl() {
 	});
 }
 
-// Utility hooks for accessing cached data
 export function useMediaQueryData(prefix: string = "") {
 	const queryClient = useQueryClient();
 	return queryClient.getQueryData<MediaFile[]>(["media", prefix]);
 }
 
-// Hook for bulk operations
 export function useBulkDeleteMedia() {
 	const queryClient = useQueryClient();
 
@@ -260,14 +240,12 @@ export function useBulkDeleteMedia() {
 
 			const responses = await Promise.all(deletePromises);
 
-			// Check if any failed
 			const failed = responses.filter((response) => !response.ok);
 			if (failed.length > 0) {
 				throw new Error(`Failed to delete ${failed.length} files`);
 			}
 		},
 		onSuccess: (_, deletedKeys) => {
-			// Remove all deleted files from cache
 			queryClient.setQueryData(
 				["media", ""],
 				(old: MediaFile[] | undefined) => {
@@ -275,9 +253,7 @@ export function useBulkDeleteMedia() {
 				},
 			);
 
-			// Invalidate all media queries
 			queryClient.invalidateQueries({ queryKey: ["media"] });
 		},
 	});
 }
-

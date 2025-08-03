@@ -44,7 +44,6 @@ export async function GET(
 			return NextResponse.json({ url: signedUrl });
 		}
 
-		// Default: return file info (you could extend this to get file metadata)
 		return NextResponse.json({
 			key: decodedKey,
 			message: "Use ?action=download to get signed download URL",

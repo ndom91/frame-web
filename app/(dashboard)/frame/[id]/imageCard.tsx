@@ -75,10 +75,6 @@ export default function ImageCard({ item }: { item: FileObject }) {
 									<Eye className="h-4 w-4 mr-2" />
 									Preview
 								</DropdownMenuItem>
-								{/* <DropdownMenuItem> */}
-								{/* 	<Play className="h-4 w-4 mr-2" /> */}
-								{/* 	Display Now */}
-								{/* </DropdownMenuItem> */}
 								<DropdownMenuItem onClick={handleDownload}>
 									<Download className="h-4 w-4 mr-2" />
 									Download

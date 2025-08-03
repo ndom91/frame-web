@@ -4,9 +4,6 @@ import * as React from "react";
 import Image from "next/image";
 import Logo from "./logo.png";
 import { ImagesIcon } from "@phosphor-icons/react/dist/ssr/Images";
-// import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/ssr/PaperPlaneTilt";
-// import { LifebuoyIcon } from "@phosphor-icons/react/dist/ssr/Lifebuoy";
-
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -21,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { type Session } from "@/app/lib/auth";
 import { NavFrames } from "@/components/nav-frames";
+import packageJson from "../package.json";
 
 const data = {
 	navMain: [
@@ -65,7 +63,7 @@ export function AppSidebar({ ...props }: Props) {
 								</div>
 								<div className="flex flex-col gap-0.5 leading-none">
 									<span className="font-medium">Domino Frame</span>
-									<span className="text-muted-foreground">v0.1.2</span>
+									<span className="text-muted-foreground">v{packageJson.version}</span>
 								</div>
 							</a>
 						</SidebarMenuButton>
