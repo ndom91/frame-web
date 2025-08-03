@@ -97,13 +97,13 @@ export default function Frame({
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuItem
-								onClick={() => router.push(`/dashboard/frame/${frame.id}`)}
+								onClick={() => router.push(`/frame/${frame.id}`)}
 							>
 								View Details
 							</DropdownMenuItem>
 							<DropdownMenuItem>Sync Now</DropdownMenuItem>
 							<DropdownMenuItem
-								onClick={() => router.push(`/dashboard/frame/${frame.id}`)}
+								onClick={() => router.push(`/frame/${frame.id}`)}
 							>
 								Settings
 							</DropdownMenuItem>
@@ -153,7 +153,7 @@ export default function Frame({
 						variant="outline"
 						size="sm"
 						className="flex-1 bg-transparent"
-						onClick={() => router.push(`/dashboard/frame/${frame.id}`)}
+						onClick={() => router.push(`/frame/${frame.id}`)}
 					>
 						Manage
 					</Button>

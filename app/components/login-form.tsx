@@ -21,8 +21,8 @@ export function LoginForm({
 	const signInSocial = async (provider: "google" | "github") => {
 		await signIn.social({
 			provider: provider,
-			callbackURL: "/dashboard",
-			newUserCallbackURL: "/dashboard?new-user=true",
+			callbackURL: "/",
+			newUserCallbackURL: "/?new-user=true",
 		});
 	};
 
@@ -33,7 +33,7 @@ export function LoginForm({
 			toast.error("Error signing in with Passkey, please try again");
 			return;
 		}
-		router.push("/dashboard");
+		router.push("/");
 	};
 
 	return (

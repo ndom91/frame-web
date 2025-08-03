@@ -303,7 +303,7 @@ export default function FramePage({ frame, files }: Props) {
 						{/* 	<Download className="h-4 w-4 mr-2" /> */}
 						{/* 	Export All */}
 						{/* </Button> */}
-						<Button onClick={() => router.push("/dashboard/media/view")}>
+						<Button onClick={() => router.push("/media/view")}>
 							<Upload className="h-4 w-4 mr-2" />
 							Upload Media
 						</Button>

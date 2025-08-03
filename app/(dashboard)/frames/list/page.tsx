@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import Frames from "@/app/dashboard/frames/list/frames";
+import Frames from "@/app/(dashboard)/frames/list/frames";
 import { db } from "@/app/lib/db";
 
 export const metadata: Metadata = {

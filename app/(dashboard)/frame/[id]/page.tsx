@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import Frame from "@/app/dashboard/frame/[id]/frame";
+import Frame from "@/app/(dashboard)/frame/[id]/frame";
 import { db } from "@/app/lib/db";
 import { listFiles } from "@/app/lib/r2-actions";
 

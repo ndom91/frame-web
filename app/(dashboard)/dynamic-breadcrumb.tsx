@@ -37,7 +37,7 @@ export function DynamicBreadcrumb() {
 			<BreadcrumbList>
 				{pathSegments.map((segment, index) => {
 					const isLast = index === pathSegments.length - 1;
-					const href = `/dashboard/${pathSegments.slice(0, index + 1).join("/")}`;
+					const href = `/${pathSegments.slice(0, index + 1).join("/")}`;
 
 					return (
 						<div key={segment} className="flex items-center">
@@ -60,4 +60,3 @@ export function DynamicBreadcrumb() {
 		</Breadcrumb>
 	);
 }
-

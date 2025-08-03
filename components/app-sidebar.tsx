@@ -31,11 +31,11 @@ const data = {
 		//   items: [
 		//     {
 		//       title: "Files",
-		//       url: "/dashboard/media/view",
+		//       url: "/media/view",
 		//     },
 		//     {
 		//       title: "Settings",
-		//       url: "/dashboard/media/settings",
+		//       url: "/media/settings",
 		//     },
 		//   ],
 		// },
@@ -46,11 +46,11 @@ const data = {
 			items: [
 				{
 					title: "View",
-					url: "/dashboard/frames/list",
+					url: "/frames/list",
 				},
 				{
 					title: "Add",
-					url: "/dashboard/frames/add",
+					url: "/frames/add",
 				},
 			],
 		},
