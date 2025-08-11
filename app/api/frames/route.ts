@@ -22,7 +22,7 @@ export async function GET() {
 			.where(eq(usersToFrames.userId, session.user.id));
 
 		if (result?.length === 0) {
-			return NextResponse.json({ error: "No frames found" }, { status: 500 });
+			return NextResponse.json([]);
 		}
 
 		return NextResponse.json(result.map((result) => result.frame));
