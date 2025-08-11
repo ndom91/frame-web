@@ -1,14 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/db";
 import { frame } from "@/db/frame.sql";
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
+import { eq } from "drizzle-orm";
+import { usersToFrames } from "@/db/frameOnUser.sql";
 
 export async function GET() {
-	try {
-		const frames = await db.query.frame.findMany({
-			orderBy: (frame, { desc }) => [desc(frame.createdAt)],
-		});
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
 
-		return NextResponse.json(frames);
+	try {
+		const result = await db
+			.select()
+			.from(frame)
+			.innerJoin(usersToFrames, eq(frame.id, usersToFrames.frameId))
+			.where(eq(usersToFrames.userId, session.user.id));
+
+		if (result?.length === 0) {
+			return NextResponse.json({ error: "No frames found" }, { status: 500 });
+		}
+
+		return NextResponse.json(result.map((result) => result.frame));
 	} catch (error) {
 		console.error("Error fetching frames:", error);
 		return NextResponse.json(
@@ -19,6 +36,13 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const body = await request.json();
 		const { title, location, model, frameId } = body;
@@ -52,4 +76,3 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
-

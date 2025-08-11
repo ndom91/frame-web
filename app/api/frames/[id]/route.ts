@@ -2,11 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/db";
 import { frame } from "@/db/frame.sql";
 import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
+import { auth } from "@/app/lib/auth";
 
 export async function GET(
 	_request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const { id } = await params;
 		const frameId = parseInt(id);
@@ -37,6 +46,13 @@ export async function PUT(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const { id } = await params;
 		const frameId = parseInt(id);
@@ -78,6 +94,13 @@ export async function DELETE(
 	_request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const { id } = await params;
 		const frameId = parseInt(id);
@@ -104,4 +127,3 @@ export async function DELETE(
 		);
 	}
 }
-

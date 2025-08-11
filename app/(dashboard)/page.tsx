@@ -1,7 +1,7 @@
 import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
 import { ImageIcon } from "@phosphor-icons/react/dist/ssr/Image";
 import { VideoIcon } from "@phosphor-icons/react/dist/ssr/Video";
-import RegisterPasskey from "./register-passkey";
+// import RegisterPasskey from "./register-passkey";
 
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
@@ -16,7 +16,7 @@ export default async function Dashboard() {
 
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-			<RegisterPasskey />
+			{/* <RegisterPasskey /> */}
 			<div className="grid auto-rows-min gap-4 md:grid-cols-3">
 				<div className=" flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
 					<FrameCornersIcon

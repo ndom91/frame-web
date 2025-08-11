@@ -36,7 +36,6 @@ export default function Frame({
 	setSelectedFrames,
 }: Props) {
 	const router = useRouter();
-
 	const { data: mediaFiles = [] } = useMedia(frame.frameId);
 
 	const handleSelectFrame = (frameId: number) => {
@@ -129,7 +128,7 @@ export default function Frame({
 				<div className="relative overflow-hidden rounded-lg bg-muted flex-1">
 					<Image
 						src={
-							mediaFiles[randomIndex].url ||
+							mediaFiles[randomIndex]?.url ||
 							"https://unsplash.it/300/200?random"
 						}
 						width={300}

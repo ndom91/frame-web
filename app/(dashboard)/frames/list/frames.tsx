@@ -35,9 +35,9 @@ export default function FramesPage() {
 
 	const filteredFrames = frames.filter((frame) => {
 		const matchesSearch =
-			frame.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			frame.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			frame.model.toLowerCase().includes(searchQuery.toLowerCase());
+			frame.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			frame.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			frame.model?.toLowerCase().includes(searchQuery.toLowerCase());
 		const matchesStatus =
 			statusFilter === "all" || frame.status === statusFilter;
 		return matchesSearch && matchesStatus;

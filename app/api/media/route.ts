@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listFiles, uploadFile } from "@/app/lib/r2-actions";
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const { searchParams } = new URL(request.url);
 		const prefix = searchParams.get("prefix") || "";
@@ -19,6 +28,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const formData = await request.formData();
 		const file = formData.get("file") as File;
@@ -60,4 +76,3 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
-

@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteFile, getSignedUrlForDownload } from "@/app/lib/r2-actions";
+import { headers } from "next/headers";
+import { auth } from "@/app/lib/auth";
 
 export async function DELETE(
 	_request: NextRequest,
 	{ params }: { params: Promise<{ key: string }> },
 ) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const { key } = await params;
 		const decodedKey = decodeURIComponent(key);
@@ -29,6 +38,13 @@ export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ key: string }> },
 ) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const { key } = await params;
 		const decodedKey = decodeURIComponent(key);
@@ -56,4 +72,3 @@ export async function GET(
 		);
 	}
 }
-
