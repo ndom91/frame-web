@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileObject } from "@/app/lib/r2";
+import { toast } from "sonner";
 
 export type MediaFile = FileObject & {
 	type?: string;
@@ -83,6 +84,7 @@ export function useUploadMedia() {
 			queryClient.invalidateQueries({ queryKey: ["media"] });
 		},
 		onError: (error) => {
+			toast.error(`mA: ${error}`);
 			console.log("Error uploading file:", error);
 		},
 	});
