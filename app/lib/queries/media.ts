@@ -59,8 +59,8 @@ export function useUploadMedia() {
 			});
 
 			if (!response.ok) {
-				const error = await response.json();
-				throw new Error(error.error || "Failed to upload file");
+				const error = await response.text();
+				throw new Error(error || "Failed to upload file");
 			}
 
 			return response.json();
