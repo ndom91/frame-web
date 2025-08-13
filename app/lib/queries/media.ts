@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileObject } from "@/app/lib/r2";
 import { toast } from "sonner";
+import { resizeImage, formatFileSize } from "@/app/lib/image-utils";
 
 export type MediaFile = FileObject & {
 	type?: string;
@@ -50,20 +51,46 @@ export function useUploadMedia() {
 		retry: 3,
 		mutationFn: async ({ file, key }: UploadFileData): Promise<MediaFile> => {
 			const formData = new FormData();
-			formData.append("file", file);
-			formData.append("key", key);
 
-			const response = await fetch("/api/media", {
-				method: "POST",
-				body: formData,
-			});
+			try {
+				const resizedFile = await resizeImage(file, {
+					maxWidth: 1920,
+					quality: 0.85,
+					format: "jpeg",
+				});
 
-			if (!response.ok) {
-				const error = await response.text();
-				throw new Error(error || "Failed to upload file");
+				formData.append("file", resizedFile);
+				console.log(
+					`Original: ${formatFileSize(file.size)} → Resized: ${formatFileSize(resizedFile.size)}`,
+				);
+			} catch (error) {
+				if (file.size < 4 * 1024 * 1024) {
+					console.warn("Image resizing failed, uploading original:", error);
+					formData.append("file", file);
+				} else {
+					throw new Error(
+						`Image too large (${formatFileSize(file.size)}) and resizing failed`,
+					);
+				}
 			}
 
-			return response.json();
+			try {
+				formData.append("key", key);
+
+				const response = await fetch("/api/media", {
+					method: "POST",
+					body: formData,
+				});
+
+				if (!response.ok) {
+					const error = await response.text();
+					throw new Error(error || "Failed to upload file");
+				}
+
+				return response.json();
+			} catch (e) {
+				throw new Error(`Image upload failed: ${e}`);
+			}
 		},
 		onSuccess: (newFile, variables) => {
 			queryClient.setQueryData(

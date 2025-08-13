@@ -33,6 +33,7 @@ import type { Frame } from "@/lib/types";
 import { getRelativeTime } from "@/lib/utils";
 import { useMedia, useUploadMedia } from "@/app/lib/queries/media";
 import { toast } from "sonner";
+import { formatFileSize } from "@/app/lib/image-utils";
 
 interface Props {
 	frame: Frame;
@@ -136,7 +137,40 @@ export default function FramePage({ frame }: Props) {
 
 	const handleFileUpload = async (files: File[]) => {
 		try {
-			const uploadPromises = files.map((file) => {
+			// Validate files before upload
+			const validFiles: File[] = [];
+			const invalidFiles: string[] = [];
+
+			files.forEach((file) => {
+				// Check file size (warn if over 50MB, but we'll try to resize)
+				if (file.size > 50 * 1024 * 1024) {
+					invalidFiles.push(`${file.name} (${formatFileSize(file.size)} - too large)`);
+					return;
+				}
+
+				// Check if it's an image
+				if (!file.type.startsWith("image/")) {
+					invalidFiles.push(`${file.name} (not an image)`);
+					return;
+				}
+
+				validFiles.push(file);
+			});
+
+			// Show warnings for invalid files
+			if (invalidFiles.length > 0) {
+				toast.error(`Skipped ${invalidFiles.length} invalid files: ${invalidFiles.join(", ")}`);
+			}
+
+			if (validFiles.length === 0) {
+				return;
+			}
+
+			// Show info about what we're uploading
+			const totalSize = validFiles.reduce((sum, file) => sum + file.size, 0);
+			toast.info(`Uploading ${validFiles.length} images (${formatFileSize(totalSize)}). Large images will be resized.`);
+
+			const uploadPromises = validFiles.map((file) => {
 				const key = `${frame.frameId}/${file.name}`;
 				return mutateAsync({ file, key });
 			});
@@ -149,17 +183,14 @@ export default function FramePage({ frame }: Props) {
 			const failed = results.filter((result) => result.status === "rejected");
 
 			if (successful.length > 0) {
-				successful.map((successfulUpload) => {
-					toast.error(`Successfully to upload ${successfulUpload.value.name}`);
-				});
+				toast.success(`Successfully uploaded ${successful.length} ${successful.length > 1 ? "images" : "image"}`);
 			}
 
 			if (failed.length > 0) {
-				failed.map(() => {
-					toast.error(
-						`Failed to upload ${failed.length} ${failed.length > 1 ? "files" : "file"}`,
-					);
-				});
+				const failedReasons = failed.map((result) => 
+					result.reason?.message || "Unknown error"
+				);
+				toast.error(`Failed to upload ${failed.length} ${failed.length > 1 ? "files" : "file"}: ${failedReasons.join(", ")}`);
 			}
 		} catch (error) {
 			console.error("Upload failed:", error);

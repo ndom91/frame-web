@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { listFiles, uploadFile } from "@/app/lib/r2-actions";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
-import sharp from "sharp";
 import pRetry from "p-retry";
 
 export async function GET(request: NextRequest) {
@@ -57,24 +56,9 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const buffer = Buffer.from(await file.arrayBuffer());
-
-		const resizedBuffer = await sharp(buffer)
-			.resize(1920, null, {
-				withoutEnlargement: true,
-			})
-			.jpeg({
-				quality: 85,
-				progressive: true,
-			})
-			.toBuffer();
-
-		const resizedFile = new File([resizedBuffer], file.name, {
-			type: "image/jpeg",
-		});
-
+		// Image is already processed client-side, just upload directly
 		const result = await pRetry(
-			() => uploadFile(resizedFile, key),
+			() => uploadFile(file, key),
 			{
 				retries: 3,
 				minTimeout: 1000,
@@ -88,8 +72,8 @@ export async function POST(request: NextRequest) {
 		const fileInfo = {
 			key,
 			name: file.name,
-			size: resizedBuffer.length,
-			type: "image/jpeg",
+			size: file.size,
+			type: file.type,
 			url: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${key}`,
 			lastmodified: new Date(),
 			etag: result.ETag?.replace(/"/g, "") || "",
