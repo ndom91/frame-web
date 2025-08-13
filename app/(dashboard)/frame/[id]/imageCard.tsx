@@ -95,7 +95,6 @@ export default function ImageCard({ item }: { item: FileObject }) {
 						style={{
 							transform: `translateY(${scrollY}px)`,
 							objectPosition: objectOffset,
-							transition: "transform 10ms linear",
 						}}
 					/>
 					<div className="absolute top-2 right-2">

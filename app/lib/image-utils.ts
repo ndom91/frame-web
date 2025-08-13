@@ -70,7 +70,6 @@ export async function resizeImage(
 			reject(new Error("Failed to load image"));
 		};
 
-		// Create object URL from file
 		img.src = URL.createObjectURL(file);
 	});
 }

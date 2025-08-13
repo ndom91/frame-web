@@ -111,8 +111,8 @@ export function useUploadMedia() {
 			queryClient.invalidateQueries({ queryKey: ["media"] });
 		},
 		onError: (error) => {
-			toast.error(`mA: ${error}`);
-			console.log("Error uploading file:", error);
+			toast.error(`Error uploading file(s): ${error}`);
+			console.log("Error uploading file(s):", error);
 		},
 	});
 }

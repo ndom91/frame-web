@@ -126,8 +126,6 @@ export default function FramePage({ frame }: Props) {
 			file.type.startsWith("image/"),
 		);
 
-		console.log("upload.imageFiles", imageFiles);
-
 		if (imageFiles.length > 0) {
 			handleFileUpload(imageFiles);
 		}
@@ -144,7 +142,9 @@ export default function FramePage({ frame }: Props) {
 			files.forEach((file) => {
 				// Check file size (warn if over 50MB, but we'll try to resize)
 				if (file.size > 50 * 1024 * 1024) {
-					invalidFiles.push(`${file.name} (${formatFileSize(file.size)} - too large)`);
+					invalidFiles.push(
+						`${file.name} (${formatFileSize(file.size)} - too large)`,
+					);
 					return;
 				}
 
@@ -157,18 +157,15 @@ export default function FramePage({ frame }: Props) {
 				validFiles.push(file);
 			});
 
-			// Show warnings for invalid files
 			if (invalidFiles.length > 0) {
-				toast.error(`Skipped ${invalidFiles.length} invalid files: ${invalidFiles.join(", ")}`);
+				toast.error(
+					`Skipped ${invalidFiles.length} invalid files: ${invalidFiles.join(", ")}`,
+				);
 			}
 
 			if (validFiles.length === 0) {
 				return;
 			}
-
-			// Show info about what we're uploading
-			const totalSize = validFiles.reduce((sum, file) => sum + file.size, 0);
-			toast.info(`Uploading ${validFiles.length} images (${formatFileSize(totalSize)}). Large images will be resized.`);
 
 			const uploadPromises = validFiles.map((file) => {
 				const key = `${frame.frameId}/${file.name}`;
@@ -183,14 +180,18 @@ export default function FramePage({ frame }: Props) {
 			const failed = results.filter((result) => result.status === "rejected");
 
 			if (successful.length > 0) {
-				toast.success(`Successfully uploaded ${successful.length} ${successful.length > 1 ? "images" : "image"}`);
+				toast.success(
+					`Successfully uploaded ${successful.length} ${successful.length > 1 ? "images" : "image"}`,
+				);
 			}
 
 			if (failed.length > 0) {
-				const failedReasons = failed.map((result) => 
-					result.reason?.message || "Unknown error"
+				const failedReasons = failed.map(
+					(result) => result.reason?.message || "Unknown error",
 				);
-				toast.error(`Failed to upload ${failed.length} ${failed.length > 1 ? "files" : "file"}: ${failedReasons.join(", ")}`);
+				toast.error(
+					`Failed to upload ${failed.length} ${failed.length > 1 ? "files" : "file"}: ${failedReasons.join(", ")}`,
+				);
 			}
 		} catch (error) {
 			console.error("Upload failed:", error);
