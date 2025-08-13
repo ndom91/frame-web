@@ -57,6 +57,8 @@ export default function ImageCard({ item }: { item: FileObject }) {
 	};
 
 	const handleDownload = async () => {
+		if (!item.url) return;
+
 		const response = await fetch(item.url);
 		const blobImage = await response.blob();
 		const href = URL.createObjectURL(blobImage);

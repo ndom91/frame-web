@@ -186,7 +186,7 @@ export default function FramePage({ frame }: Props) {
 
 	return (
 		<div
-			className="container mx-auto p-3 md:p-6 pt-0! space-y-3 md:space-y-6"
+			className="container mx-auto p-3 md:p-6 pt-0! space-y-4 md:space-y-6"
 			onDragOver={handleDragOver}
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
@@ -221,12 +221,12 @@ export default function FramePage({ frame }: Props) {
 						<CardHeader className="gap-0">
 							<div className="flex items-start justify-between">
 								<div className="space-y-2">
-									<div className="flex items-start flex-wrap gap-3 pr-4">
+									<div className="flex items-center flex-wrap gap-3 pr-4">
 										<h1 className="text-3xl font-bold">{frame.title}</h1>
 										{getStatusIcon(frame.status)}
 										{getStatusBadge(frame.status)}
 									</div>
-									<div className="flex items-center gap-4 text-muted-foreground">
+									<div className="flex flex-col md:flex-row items-start md:items-center gap-1 md:gap-4 text-muted-foreground">
 										<span className="flex items-center gap-2">
 											<Monitor className="size-4" />
 											{frame.model}
@@ -268,37 +268,31 @@ export default function FramePage({ frame }: Props) {
 						<CardHeader>
 							<CardTitle className="text-lg">System Status</CardTitle>
 						</CardHeader>
-						<CardContent className="space-y-4">
-							<div className="space-y-4">
-								<div className="space-y-3">
-									<div className="flex items-center justify-between">
-										<span className="text-sm text-muted-foreground">
-											Last Sync
-										</span>
-										<span className="text-sm font-medium">
-											{frame.lastSync ?? "N/A"}
-										</span>
-									</div>
-									<div className="flex items-center justify-between">
-										<span className="text-sm text-muted-foreground">
-											Uptime
-										</span>
-										<span
-											className="text-sm font-medium"
-											title={new Date("2025-07-27T16:32:12").toLocaleString()}
-										>
-											{/* {frame.uptime} */}
-											{getRelativeTime(new Date("2025-07-27T16:32:12"))}
-										</span>
-									</div>
+						<CardContent className="space-y-2">
+							<div className="space-y-2">
+								<div className="flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">
+										Last Sync
+									</span>
+									<span className="text-sm font-medium">
+										{frame.lastSync ?? "N/A"}
+									</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">Uptime</span>
+									<span
+										className="text-sm font-medium"
+										title={new Date("2025-07-27T16:32:12").toLocaleString()}
+									>
+										{/* {frame.uptime} */}
+										{getRelativeTime(new Date("2025-07-27T16:32:12"))}
+									</span>
 								</div>
 							</div>
 							<div className="space-y-2">
 								<div className="flex items-center justify-between">
-									<span className="text-sm font-medium">Storage</span>
-									<span className="text-sm text-muted-foreground">
-										1.5GB / 32GB
-									</span>
+									<span className="text-sm text-muted-foreground">Storage</span>
+									<span className="text-sm font-medium">1.5GB / 32GB</span>
 								</div>
 								<Progress
 									// value={(frame.storageUsed / frame.storageTotal) * 100}
@@ -315,9 +309,7 @@ export default function FramePage({ frame }: Props) {
 
 			<div className="space-y-4 md:space-y-6 px-4">
 				<div className="flex items-start justify-between">
-					<div>
-						<h2 className="text-2xl font-bold">Media</h2>
-					</div>
+					<h2 className="text-2xl font-bold">Media</h2>
 					<div className="flex flex-col gap-2">
 						<div className="flex gap-2">
 							<Badge variant="secondary" className="text-sm">
@@ -332,7 +324,7 @@ export default function FramePage({ frame }: Props) {
 									className="hidden"
 									id="file-upload"
 								/>
-								<Button asChild variant="outline" size="sm">
+								<Button asChild variant="default" size="lg">
 									<label htmlFor="file-upload" className="cursor-pointer">
 										<Upload className="h-4 w-4 mr-2" />
 										Upload Images
