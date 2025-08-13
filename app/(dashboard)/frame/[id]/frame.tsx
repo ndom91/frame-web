@@ -141,11 +141,26 @@ export default function FramePage({ frame }: Props) {
 				return mutateAsync({ file, key });
 			});
 
-			await Promise.all(uploadPromises);
+			const results = await Promise.allSettled(uploadPromises);
 
-			toast.success(
-				`Successfully uploaded ${files.length} file${files.length > 1 ? "s" : ""}`,
+			const successful = results.filter(
+				(result) => result.status === "fulfilled",
 			);
+			const failed = results.filter((result) => result.status === "rejected");
+
+			if (successful.length > 0) {
+				successful.map((successfulUpload) => {
+					toast.error(`Successfully to upload ${successfulUpload.value.name}`);
+				});
+			}
+
+			if (failed.length > 0) {
+				failed.map(() => {
+					toast.error(
+						`Failed to upload ${failed.length} ${failed.length > 1 ? "files" : "file"}`,
+					);
+				});
+			}
 		} catch (error) {
 			console.error("Upload failed:", error);
 			toast.error("Failed to upload files. Please try again.");
