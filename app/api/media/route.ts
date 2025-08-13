@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { listFiles, uploadFile } from "@/app/lib/r2-actions";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
+import sharp from "sharp";
 
 export async function GET(request: NextRequest) {
 	const session = await auth.api.getSession({
@@ -55,13 +56,29 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const result = await uploadFile(file, key);
+		const buffer = Buffer.from(await file.arrayBuffer());
+
+		const resizedBuffer = await sharp(buffer)
+			.resize(1920, null, {
+				withoutEnlargement: true,
+			})
+			.jpeg({
+				quality: 85,
+				progressive: true,
+			})
+			.toBuffer();
+
+		const resizedFile = new File([resizedBuffer], file.name, {
+			type: "image/jpeg",
+		});
+
+		const result = await uploadFile(resizedFile, key);
 
 		const fileInfo = {
 			key,
 			name: file.name,
-			size: file.size,
-			type: file.type,
+			size: resizedBuffer.length,
+			type: "image/jpeg",
 			url: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${key}`,
 			lastmodified: new Date(),
 			etag: result.ETag?.replace(/"/g, "") || "",

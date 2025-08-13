@@ -363,9 +363,14 @@ export default function FramePage({ frame }: Props) {
 					</div>
 				) : mediaFiles.length > 0 ? (
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{mediaFiles.map((item) => (
-							<ImageCard key={item.key} item={item} />
-						))}
+						{mediaFiles
+							.sort((a, b) => {
+								if (a.lastmodified > b.lastmodified) return -1;
+								return 1;
+							})
+							.map((item) => (
+								<ImageCard key={item.key} item={item} />
+							))}
 					</div>
 				) : (
 					<EmptyState />

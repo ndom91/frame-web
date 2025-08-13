@@ -1,6 +1,6 @@
 import { LoginForm } from "@/components/login-form";
 import Image from "next/image";
-import Logo from "../../components/logo.png";
+import Logo from "../icon.png";
 import PasskeyConditionalUI from "./passkey-conditional-ui";
 
 export default function LoginPage() {
