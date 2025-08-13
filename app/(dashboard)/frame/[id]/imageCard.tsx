@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileObject } from "@/app/lib/r2";
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import PreviewDialog from "./previewDialog";
 import { formatFileSize, getRelativeTime } from "@/lib/utils";
 import { useDeleteMedia } from "@/app/lib/queries/media";
@@ -24,6 +24,33 @@ import { useDeleteMedia } from "@/app/lib/queries/media";
 export default function ImageCard({ item }: { item: FileObject }) {
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
 	const deleteMedia = useDeleteMedia();
+	const imageRef = useRef<HTMLImageElement>(null);
+	const [scrollY, setScrollY] = useState(0);
+
+	const parallaxRate = useMemo(() => {
+		return Math.random() * 2;
+	}, []);
+
+	useEffect(() => {
+		const handleScroll = () => {
+			if (imageRef.current) {
+				const rect = imageRef.current.getBoundingClientRect();
+				const scrollProgress =
+					(window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+				setScrollY(scrollProgress * 20 * parallaxRate - 10 * parallaxRate);
+			}
+		};
+
+		window.addEventListener("scroll", handleScroll, { passive: true });
+		handleScroll();
+
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, [parallaxRate]);
+
+	const objectOffset = useMemo(() => {
+		const yOffset = (Math.random() - 0.5) * 80;
+		return `0 calc(50% + ${yOffset}px)`;
+	}, []);
 
 	const handleDelete = (file: FileObject) => {
 		deleteMedia.mutateAsync(file.key);
@@ -56,12 +83,18 @@ export default function ImageCard({ item }: { item: FileObject }) {
 	return (
 		<>
 			<Card key={item.key} className="overflow-hidden gap-2 pt-0 pb-2">
-				<div className="relative">
+				<div className="relative overflow-hidden">
 					{/* eslint-disable-next-line @next/next/no-img-element */}
 					<img
+						ref={imageRef}
 						alt="Image"
 						src={`https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.key}`}
-						className="h-36 w-full object-cover object-center"
+						className="h-56 w-full object-cover object-center"
+						style={{
+							transform: `translateY(${scrollY}px)`,
+							objectPosition: objectOffset,
+							// transition: "transform 100ms ease-in",
+						}}
 					/>
 					<div className="absolute top-2 right-2">
 						<DropdownMenu>

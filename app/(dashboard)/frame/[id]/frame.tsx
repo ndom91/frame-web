@@ -396,7 +396,7 @@ export default function FramePage({ frame }: Props) {
 								</Button>
 							</div>
 						</div>
-						{!uploadMedia.isPending && (
+						{uploadMedia.isPending && (
 							<div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
 								<div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
 								Uploading...
