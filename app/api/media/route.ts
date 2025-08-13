@@ -3,6 +3,7 @@ import { listFiles, uploadFile } from "@/app/lib/r2-actions";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
 import sharp from "sharp";
+import pRetry from "p-retry";
 
 export async function GET(request: NextRequest) {
 	const session = await auth.api.getSession({
@@ -72,7 +73,17 @@ export async function POST(request: NextRequest) {
 			type: "image/jpeg",
 		});
 
-		const result = await uploadFile(resizedFile, key);
+		const result = await pRetry(
+			() => uploadFile(resizedFile, key),
+			{
+				retries: 3,
+				minTimeout: 1000,
+				maxTimeout: 5000,
+				onFailedAttempt: (error) => {
+					console.warn(`Upload attempt ${error.attemptNumber} failed. ${error.retriesLeft} retries left.`);
+				},
+			}
+		);
 
 		const fileInfo = {
 			key,
