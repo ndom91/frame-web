@@ -73,13 +73,15 @@ export default function FramePage({ frame }: Props) {
 
 		switch (status) {
 			case "online":
-				return <Wifi className="h-5 w-5 text-lime-500" />;
+				return <Wifi className="flex-shrink-0 h-5 w-5 text-lime-500" />;
 			case "offline":
-				return <WifiOff className="h-5 w-5 text-rose-500" />;
+				return <WifiOff className="flex-shrink-0 h-5 w-5 text-rose-500" />;
 			case "syncing":
-				return <Monitor className="h-5 w-5 text-sky-500 animate-pulse" />;
+				return (
+					<Monitor className="flex-shrink-0 h-5 w-5 text-sky-500 animate-pulse" />
+				);
 			default:
-				return <WifiOff className="h-5 w-5 text-gray-400" />;
+				return <WifiOff className="flex-shrink-0 h-5 w-5 text-gray-400" />;
 		}
 	};
 
@@ -184,7 +186,7 @@ export default function FramePage({ frame }: Props) {
 
 	return (
 		<div
-			className="container mx-auto p-3 md:p-6 space-y-3 md:space-y-6"
+			className="container mx-auto p-3 md:p-6 pt-0! space-y-3 md:space-y-6"
 			onDragOver={handleDragOver}
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
@@ -203,7 +205,11 @@ export default function FramePage({ frame }: Props) {
 				</div>
 			)}
 			<div className="flex items-center gap-4">
-				<Button variant="ghost" size="sm" onClick={() => router.back()}>
+				<Button
+					variant="ghost"
+					size="sm"
+					onClick={() => router.push("/frames/list")}
+				>
 					<ArrowLeft className="h-4 w-4 mr-2" />
 					Back to Frames
 				</Button>
@@ -212,21 +218,21 @@ export default function FramePage({ frame }: Props) {
 			<div className="grid gap-6 lg:grid-cols-3">
 				<div className="lg:col-span-2">
 					<Card>
-						<CardHeader>
+						<CardHeader className="gap-0">
 							<div className="flex items-start justify-between">
 								<div className="space-y-2">
-									<div className="flex items-center gap-3">
+									<div className="flex items-start flex-wrap gap-3 pr-4">
 										<h1 className="text-3xl font-bold">{frame.title}</h1>
 										{getStatusIcon(frame.status)}
 										{getStatusBadge(frame.status)}
 									</div>
 									<div className="flex items-center gap-4 text-muted-foreground">
-										<span className="flex items-center gap-1">
-											<Monitor className="h-4 w-4" />
+										<span className="flex items-center gap-2">
+											<Monitor className="size-4" />
 											{frame.model}
 										</span>
-										<span className="flex items-center gap-1">
-											<MapPin className="h-4 w-4" />
+										<span className="flex items-center gap-2">
+											<MapPin className="size-4" />
 											{frame.location}
 										</span>
 									</div>
@@ -254,63 +260,39 @@ export default function FramePage({ frame }: Props) {
 								</DropdownMenu>
 							</div>
 						</CardHeader>
-						<CardContent>
-							<div className="grid gap-6 md:grid-cols-2">
-								{/* Current Display */}
-								{/* <div className="space-y-3"> */}
-								{/* 	<h3 className="font-semibold">Current Display</h3> */}
-								{/* 	<div className="relative overflow-hidden rounded-lg bg-muted"> */}
-								{/* 		<Image */}
-								{/* 			fill={true} */}
-								{/* 			src={frame.currentImage || "/placeholder.svg"} */}
-								{/* 			alt="Current display" */}
-								{/* 			className="h-48 w-full object-cover" */}
-								{/* 		/> */}
-								{/* 		<div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"> */}
-								{/* 			<Button size="sm" variant="secondary"> */}
-								{/* 				<Eye className="h-4 w-4 mr-2" /> */}
-								{/* 				Preview */}
-								{/* 			</Button> */}
-								{/* 		</div> */}
-								{/* 	</div> */}
-								{/* </div> */}
-
-								<div className="space-y-4">
-									<h3 className="font-semibold">Quick Stats</h3>
-									<div className="space-y-3">
-										<div className="flex items-center justify-between">
-											<span className="text-sm text-muted-foreground">
-												Last Sync
-											</span>
-											<span className="text-sm font-medium">
-												{frame.lastSync ?? "N/A"}
-											</span>
-										</div>
-										<div className="flex items-center justify-between">
-											<span className="text-sm text-muted-foreground">
-												Uptime
-											</span>
-											<span
-												className="text-sm font-medium"
-												title={new Date("2025-07-27T16:32:12").toLocaleString()}
-											>
-												{/* {frame.uptime} */}
-												{getRelativeTime(new Date("2025-07-27T16:32:12"))}
-											</span>
-										</div>
-									</div>
-								</div>
-							</div>
-						</CardContent>
 					</Card>
 				</div>
 
-				<div className="space-y-6">
-					<Card>
+				<div className="">
+					<Card className="gap-2 md:gap-4">
 						<CardHeader>
 							<CardTitle className="text-lg">System Status</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
+							<div className="space-y-4">
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<span className="text-sm text-muted-foreground">
+											Last Sync
+										</span>
+										<span className="text-sm font-medium">
+											{frame.lastSync ?? "N/A"}
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-sm text-muted-foreground">
+											Uptime
+										</span>
+										<span
+											className="text-sm font-medium"
+											title={new Date("2025-07-27T16:32:12").toLocaleString()}
+										>
+											{/* {frame.uptime} */}
+											{getRelativeTime(new Date("2025-07-27T16:32:12"))}
+										</span>
+									</div>
+								</div>
+							</div>
 							<div className="space-y-2">
 								<div className="flex items-center justify-between">
 									<span className="text-sm font-medium">Storage</span>
@@ -324,43 +306,8 @@ export default function FramePage({ frame }: Props) {
 									className="h-2"
 								/>
 							</div>
-
-							{/* <div className="space-y-2"> */}
-							{/* 	<div className="flex items-center justify-between"> */}
-							{/* 		<span className="text-sm font-medium">WiFi Signal</span> */}
-							{/* 		<span className="text-sm text-muted-foreground"> */}
-							{/* 			{frame.wifiSignal}% */}
-							{/* 		</span> */}
-							{/* 	</div> */}
-							{/* 	<Progress value={frame.wifiSignal} className="h-2" /> */}
-							{/* </div> */}
 						</CardContent>
 					</Card>
-
-					{/* Technical Details */}
-					{/* <Card> */}
-					{/* 	<CardHeader> */}
-					{/* 		<CardTitle className="text-lg">Technical Details</CardTitle> */}
-					{/* 	</CardHeader> */}
-					{/* 	<CardContent className="space-y-3"> */}
-					{/* 		<div className="flex justify-between"> */}
-					{/* 			<span className="text-sm text-muted-foreground"> */}
-					{/* 				Serial Number */}
-					{/* 			</span> */}
-					{/* 			<span className="text-sm font-mono">{frame.serialNumber}</span> */}
-					{/* 		</div> */}
-					{/* 		<div className="flex justify-between"> */}
-					{/* 			<span className="text-sm text-muted-foreground">Firmware</span> */}
-					{/* 			<span className="text-sm">{frame.firmwareVersion}</span> */}
-					{/* 		</div> */}
-					{/* 		<div className="flex justify-between"> */}
-					{/* 			<span className="text-sm text-muted-foreground"> */}
-					{/* 				Temperature */}
-					{/* 			</span> */}
-					{/* 			<span className="text-sm">{frame.temperature}°C</span> */}
-					{/* 		</div> */}
-					{/* 	</CardContent> */}
-					{/* </Card> */}
 				</div>
 			</div>
 
@@ -370,9 +317,6 @@ export default function FramePage({ frame }: Props) {
 				<div className="flex items-start justify-between">
 					<div>
 						<h2 className="text-2xl font-bold">Media</h2>
-						<p className="text-sm md:text-base text-muted-foreground">
-							Manage images and content for this frame
-						</p>
 					</div>
 					<div className="flex flex-col gap-2">
 						<div className="flex gap-2">
