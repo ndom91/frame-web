@@ -6,6 +6,7 @@ import { VideoIcon } from "@phosphor-icons/react/dist/ssr/Video";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import DashboardPage from "./dashboardPage";
 
 export default async function Dashboard() {
 	const session = await auth.api.getSession({
@@ -51,6 +52,7 @@ export default async function Dashboard() {
 				{/* 		</pre> */}
 				{/* 	</div> */}
 				{/* ) : null} */}
+				<DashboardPage />
 			</div>
 		</div>
 	);

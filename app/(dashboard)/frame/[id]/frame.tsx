@@ -184,7 +184,7 @@ export default function FramePage({ frame }: Props) {
 
 	return (
 		<div
-			className="container mx-auto p-6 space-y-6"
+			className="container mx-auto p-3 md:p-6 space-y-3 md:space-y-6"
 			onDragOver={handleDragOver}
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
@@ -366,40 +366,42 @@ export default function FramePage({ frame }: Props) {
 
 			<Separator />
 
-			<div className="space-y-6">
-				<div className="flex items-center justify-between">
+			<div className="space-y-4 md:space-y-6 px-4">
+				<div className="flex items-start justify-between">
 					<div>
-						<h2 className="text-2xl font-bold">Media Library</h2>
-						<p className="text-muted-foreground">
+						<h2 className="text-2xl font-bold">Media</h2>
+						<p className="text-sm md:text-base text-muted-foreground">
 							Manage images and content for this frame
 						</p>
 					</div>
-					<div className="flex gap-2">
-						<Badge variant="secondary" className="text-sm">
-							{mediaFiles.length} {mediaFiles.length === 1 ? "file" : "files"}
-						</Badge>
-						<div className="flex items-center gap-2">
-							{uploadMedia.isPending && (
-								<div className="flex items-center gap-2 text-sm text-muted-foreground">
-									<div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-									Uploading...
-								</div>
-							)}
-							<input
-								type="file"
-								multiple
-								accept="image/*"
-								onChange={handleFileInputChange}
-								className="hidden"
-								id="file-upload"
-							/>
-							<Button asChild variant="outline" size="sm">
-								<label htmlFor="file-upload" className="cursor-pointer">
-									<Upload className="h-4 w-4 mr-2" />
-									Upload Images
-								</label>
-							</Button>
+					<div className="flex flex-col gap-2">
+						<div className="flex gap-2">
+							<Badge variant="secondary" className="text-sm">
+								{mediaFiles.length} {mediaFiles.length === 1 ? "file" : "files"}
+							</Badge>
+							<div className="flex items-center gap-2">
+								<input
+									type="file"
+									multiple
+									accept="image/*"
+									onChange={handleFileInputChange}
+									className="hidden"
+									id="file-upload"
+								/>
+								<Button asChild variant="outline" size="sm">
+									<label htmlFor="file-upload" className="cursor-pointer">
+										<Upload className="h-4 w-4 mr-2" />
+										Upload Images
+									</label>
+								</Button>
+							</div>
 						</div>
+						{!uploadMedia.isPending && (
+							<div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
+								<div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+								Uploading...
+							</div>
+						)}
 					</div>
 				</div>
 

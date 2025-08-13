@@ -26,8 +26,8 @@ import { getRelativeTime } from "@/lib/utils";
 
 interface Props {
 	frame: Frame;
-	selectedFrames: number[];
-	setSelectedFrames: Dispatch<SetStateAction<number[]>>;
+	selectedFrames?: number[];
+	setSelectedFrames?: Dispatch<SetStateAction<number[]>>;
 }
 
 export default function Frame({
@@ -39,6 +39,7 @@ export default function Frame({
 	const { data: mediaFiles = [] } = useMedia(frame.frameId);
 
 	const handleSelectFrame = (frameId: number) => {
+		if (!setSelectedFrames) return;
 		setSelectedFrames((prev) =>
 			prev.includes(frameId)
 				? prev.filter((id) => id !== frameId)
@@ -89,7 +90,7 @@ export default function Frame({
 				<div className="flex items-start justify-between">
 					<div className="flex items-start gap-2">
 						<Checkbox
-							checked={selectedFrames.includes(frame.id)}
+							checked={selectedFrames?.includes(frame.id)}
 							onCheckedChange={() => handleSelectFrame(frame.id)}
 							className="mt-1"
 						/>
@@ -134,7 +135,7 @@ export default function Frame({
 						width={300}
 						height={200}
 						alt={`Current display on ${frame.title}`}
-						className="h-56 object-cover object-center relative!"
+						className="w-full h-56 object-cover object-center relative!"
 					/>
 					<div className="absolute top-2 right-2 rounded-md bg-stone-200/70 p-1">
 						{getStatusIcon(frame.status)}

@@ -19,6 +19,7 @@ import {
 import { type Session } from "@/app/lib/auth";
 import { NavFrames } from "@/components/nav-frames";
 import packageJson from "../package.json";
+import Link from "next/link";
 
 const data = {
 	navMain: [
@@ -51,7 +52,7 @@ export function AppSidebar({ ...props }: Props) {
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton size="lg" asChild>
-							<a href="#">
+							<Link href="/">
 								<div className=" text-sidebar-primary-foreground flex items-center justify-center rounded-lg">
 									<Image
 										src={Logo}
@@ -63,9 +64,11 @@ export function AppSidebar({ ...props }: Props) {
 								</div>
 								<div className="flex flex-col gap-0.5 leading-none">
 									<span className="font-medium">Domino Frame</span>
-									<span className="text-muted-foreground">v{packageJson.version}</span>
+									<span className="text-muted-foreground">
+										v{packageJson.version}
+									</span>
 								</div>
-							</a>
+							</Link>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 				</SidebarMenu>
