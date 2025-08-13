@@ -13,6 +13,7 @@ import {
 	RotateCcw,
 	Trash2,
 	ImageIcon,
+	FileWarning,
 } from "lucide-react";
 
 import ImageCard from "./imageCard";
@@ -66,7 +67,7 @@ export default function FramePage({ frame }: Props) {
 		error: mediaError,
 	} = useMedia(frame.frameId);
 
-	const uploadMedia = useUploadMedia();
+	const { mutateAsync, isPending, isError } = useUploadMedia();
 
 	const getStatusIcon = (status: string | null) => {
 		if (!status) return;
@@ -124,6 +125,8 @@ export default function FramePage({ frame }: Props) {
 			file.type.startsWith("image/"),
 		);
 
+		console.log("upload.imageFiles", imageFiles);
+
 		if (imageFiles.length > 0) {
 			handleFileUpload(imageFiles);
 		}
@@ -135,7 +138,7 @@ export default function FramePage({ frame }: Props) {
 		try {
 			const uploadPromises = files.map((file) => {
 				const key = `${frame.frameId}/${file.name}`;
-				return uploadMedia.mutateAsync({ file, key });
+				return mutateAsync({ file, key });
 			});
 
 			await Promise.all(uploadPromises);
@@ -175,10 +178,22 @@ export default function FramePage({ frame }: Props) {
 				digital frame.
 			</p>
 			<div className="flex gap-3">
-				<Button>
-					<Upload className="h-4 w-4 mr-2" />
-					Upload Images
-				</Button>
+				<div className="flex items-center gap-2">
+					<input
+						type="file"
+						multiple
+						accept="image/*"
+						onChange={handleFileInputChange}
+						className="hidden"
+						id="file-upload"
+					/>
+					<Button asChild variant="default" size="lg">
+						<label htmlFor="file-upload" className="cursor-pointer">
+							<Upload className="h-4 w-4 mr-2" />
+							Upload Images
+						</label>
+					</Button>
+				</div>
 				<Button variant="outline">Browse Gallery</Button>
 			</div>
 		</div>
@@ -332,10 +347,16 @@ export default function FramePage({ frame }: Props) {
 								</Button>
 							</div>
 						</div>
-						{uploadMedia.isPending && (
+						{isPending && (
 							<div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
 								<div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
 								Uploading...
+							</div>
+						)}
+						{isError && (
+							<div className="flex items-center justify-end gap-2 text-sm text-rose-400">
+								<FileWarning className="size-4" />
+								Upload error
 							</div>
 						)}
 					</div>

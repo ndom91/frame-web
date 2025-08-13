@@ -46,6 +46,7 @@ export function useUploadMedia() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
+		retry: 3,
 		mutationFn: async ({ file, key }: UploadFileData): Promise<MediaFile> => {
 			const formData = new FormData();
 			formData.append("file", file);
@@ -80,6 +81,9 @@ export function useUploadMedia() {
 			);
 
 			queryClient.invalidateQueries({ queryKey: ["media"] });
+		},
+		onError: (error) => {
+			console.log("Error uploading file:", error);
 		},
 	});
 }
