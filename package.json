@@ -42,13 +42,14 @@
 		"p-retry": "^6.2.1",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
+		"recharts": "^2.15.4",
 		"sharp": "^0.34.3",
 		"sonner": "^2.0.3",
 		"tailwind-merge": "^3.3.0"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
-		"@tailwindcss/postcss": "^4",
+		"@tailwindcss/postcss": "^4.1.8",
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
