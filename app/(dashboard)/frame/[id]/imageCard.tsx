@@ -26,9 +26,14 @@ export default function ImageCard({ item }: { item: FileObject }) {
 	const deleteMedia = useDeleteMedia();
 	const imageRef = useRef<HTMLImageElement>(null);
 	const [scrollY, setScrollY] = useState(0);
+	const [scale, setScale] = useState(1);
 
 	const parallaxRate = useMemo(() => {
 		return Math.random() * 2;
+	}, []);
+
+	const scaleRate = useMemo(() => {
+		return Math.random() * 0.05 + 1.02; // Random between 1.05-1.15
 	}, []);
 
 	useEffect(() => {
@@ -37,7 +42,8 @@ export default function ImageCard({ item }: { item: FileObject }) {
 				const rect = imageRef.current.getBoundingClientRect();
 				const scrollProgress =
 					(window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-				setScrollY(scrollProgress * 20 * parallaxRate - 10 * parallaxRate);
+				setScrollY(scrollProgress * 10 * parallaxRate - 10 * parallaxRate);
+				setScale(1 + scrollProgress * (scaleRate - 1));
 			}
 		};
 
@@ -45,11 +51,12 @@ export default function ImageCard({ item }: { item: FileObject }) {
 		handleScroll();
 
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [parallaxRate]);
+	}, [parallaxRate, scaleRate]);
 
-	const objectOffset = useMemo(() => {
-		const yOffset = (Math.random() - 0.5) * 80;
-		return `0 calc(50% + ${yOffset}px)`;
+	const backgroundPosition = useMemo(() => {
+		const xOffset = (Math.random() - 0.5) * 40; // -20% to +20%
+		const yOffset = (Math.random() - 0.5) * 40; // -20% to +20%
+		return `${50 + xOffset}% ${50 + yOffset}%`;
 	}, []);
 
 	const handleDelete = (file: FileObject) => {
@@ -85,18 +92,17 @@ export default function ImageCard({ item }: { item: FileObject }) {
 	return (
 		<>
 			<Card key={item.key} className="overflow-hidden gap-2 pt-0 pb-2">
-				<div className="relative overflow-hidden">
-					{/* eslint-disable-next-line @next/next/no-img-element */}
-					<img
-						ref={imageRef}
-						alt="Image"
-						src={`https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.key}`}
-						className="h-56 w-full object-cover object-center"
-						style={{
-							transform: `translateY(${scrollY}px)`,
-							objectPosition: objectOffset,
-						}}
-					/>
+				<div
+					ref={imageRef}
+					className="relative overflow-hidden h-56"
+					style={{
+						backgroundImage: `url(https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.key})`,
+						backgroundSize: "cover",
+						backgroundPosition: backgroundPosition,
+						transform: `scale3d(${scale}, ${scale}, 1)`,
+						transition: "transform 0.1s ease-in-out",
+					}}
+				>
 					<div className="absolute top-2 right-2">
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
