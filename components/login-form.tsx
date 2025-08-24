@@ -28,7 +28,6 @@ export function LoginForm({
 
 	const signInPasskey = async () => {
 		const data = await signIn.passkey();
-		console.log("PASSKEY.DATA", data);
 		if (data?.error) {
 			toast.error("Error signing in with Passkey, please try again");
 			return;
@@ -63,23 +62,19 @@ export function LoginForm({
 							>
 								Login with GitHub
 							</Button>
-							{typeof window !== "undefined" && window.PublicKeyCredential && (
-								<Button
-									type="button"
-									variant="outline"
-									className="w-full"
-									onClick={() => signInPasskey()}
-								>
-									Login with Passkey
-								</Button>
-							)}
+							{process.env.PASSKEY_ENABLED &&
+								typeof window !== "undefined" &&
+								window.PublicKeyCredential && (
+									<Button
+										type="button"
+										variant="outline"
+										className="w-full"
+										onClick={() => signInPasskey()}
+									>
+										Login with Passkey
+									</Button>
+								)}
 						</div>
-						{/* <div className="mt-4 text-center text-sm"> */}
-						{/* 	Don&apos;t have an account?{" "} */}
-						{/* 	<a href="#" className="underline underline-offset-4"> */}
-						{/* 		Sign up */}
-						{/* 	</a> */}
-						{/* </div> */}
 					</form>
 				</CardContent>
 			</Card>

@@ -20,5 +20,9 @@ export default function RegisterPasskey() {
 		registerPasskey();
 	}, []);
 
-	return <p>Current pathname</p>;
+	return (
+		<div>
+			<h3>Passkey Registered</h3>
+		</div>
+	);
 }
