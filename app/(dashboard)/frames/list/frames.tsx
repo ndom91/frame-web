@@ -10,7 +10,7 @@ import { ClockCountdownIcon } from "@phosphor-icons/react/dist/ssr/ClockCountdow
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import Frame from "./frame";
+import Frame from "./frameCard";
 import { useFrames } from "@/app/lib/queries/frames";
 import {
 	DropdownMenu,
@@ -26,6 +26,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { redirect } from "next/navigation";
 
 export default function FramesPage() {
 	const { data: frames = [], isLoading, error } = useFrames();
@@ -84,7 +85,7 @@ export default function FramesPage() {
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
-					<Button>Add New Frame</Button>
+					<Button onClick={() => redirect("/frames/add")}>Add New Frame</Button>
 				</div>
 			</div>
 
@@ -161,7 +162,7 @@ export default function FramesPage() {
 				</span>
 			</div>
 
-			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+			<div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
 				{filteredFrames.map((frame) => (
 					<Frame
 						key={frame.id}
@@ -181,7 +182,7 @@ export default function FramesPage() {
 							? "Try adjusting your search or filters"
 							: "Get started by adding your first digital frame"}
 					</p>
-					<Button>Add New Frame</Button>
+					<Button onClick={() => redirect("/frames/add")}>Add New Frame</Button>
 				</div>
 			)}
 		</div>

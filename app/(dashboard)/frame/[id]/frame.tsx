@@ -279,8 +279,8 @@ export default function FramePage({ frame }: Props) {
 
 			<div className="grid gap-6 lg:grid-cols-3">
 				<div className="lg:col-span-2">
-					<Card>
-						<CardHeader className="gap-0">
+					<Card className="h-full">
+						<CardContent>
 							<div className="flex items-start justify-between">
 								<div className="space-y-2">
 									<div className="flex items-center flex-wrap gap-3 pr-4">
@@ -321,7 +321,7 @@ export default function FramePage({ frame }: Props) {
 									</DropdownMenuContent>
 								</DropdownMenu>
 							</div>
-						</CardHeader>
+						</CardContent>
 					</Card>
 				</div>
 

@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
 			new URL(`https://images.frame.ndo.dev/**`),
 		],
 	},
+	async redirects() {
+		return [
+			{ source: "/frames", destination: "/frames/list", permanent: true },
+		];
+	},
 };
 
 export default nextConfig;
