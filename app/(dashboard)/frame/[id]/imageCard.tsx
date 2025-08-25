@@ -25,7 +25,6 @@ export default function ImageCard({ item }: { item: FileObject }) {
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
 	const deleteMedia = useDeleteMedia();
 	const imageRef = useRef<HTMLImageElement>(null);
-	const [scrollY, setScrollY] = useState(0);
 	const [scale, setScale] = useState(1);
 
 	const parallaxRate = useMemo(() => {
@@ -42,7 +41,6 @@ export default function ImageCard({ item }: { item: FileObject }) {
 				const rect = imageRef.current.getBoundingClientRect();
 				const scrollProgress =
 					(window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-				setScrollY(scrollProgress * 10 * parallaxRate - 10 * parallaxRate);
 				setScale(1 + scrollProgress * (scaleRate - 1));
 			}
 		};
