@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Frame } from "@/lib/types";
 import { useMedia } from "@/app/lib/queries/media";
-import { getRelativeTime } from "@/lib/utils";
 import { format } from "date-fns";
 
 interface Props {
