@@ -68,12 +68,13 @@ export default function ImageCard({ item }: { item: FileObject }) {
 			<Card key={item.key} className="overflow-hidden gap-2 pt-0 pb-2">
 				<div
 					ref={imageRef}
-					className="relative overflow-hidden h-56"
+					className="relative overflow-hidden h-56 hover:cursor-pointer"
 					style={{
 						backgroundImage: `url(https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.key})`,
 						backgroundSize: "cover",
 						backgroundPosition: backgroundPosition,
 					}}
+					onClick={showPreviewImage}
 				>
 					<div className="absolute top-2 right-2">
 						<DropdownMenu>
