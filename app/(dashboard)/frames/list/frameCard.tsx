@@ -166,7 +166,7 @@ export default function Frame({
 					{frame.status !== "offline" && frame.updatedAt && (
 						<div className="flex items-center gap-1 text-sm text-muted-foreground">
 							<ClockIcon className="size-4" />
-							Uptime {format(frame.updatedAt, "PPP")}
+							Up since: {format(frame.updatedAt, "PPP")}
 						</div>
 					)}
 				</div>
