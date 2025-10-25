@@ -9,29 +9,43 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { formatFileSize, getRelativeTime } from "@/lib/utils";
+import { formatFileSize } from "@/lib/utils";
+import { format } from "date-fns";
 
-export default function PreviewDialog({ image }: { image: FileObject }) {
+export default function PreviewDialog({
+	image,
+	open = false,
+	toggleModal,
+}: {
+	image: FileObject;
+	open: boolean;
+	toggleModal: (close: boolean) => void;
+}) {
 	return (
-		<Dialog defaultOpen={true}>
+		<Dialog open={open} onOpenChange={toggleModal}>
 			<form>
-				<DialogContent className="sm:max-w-[425px]">
-					<DialogHeader>
+				<DialogContent className="max-sm:h-[calc(100vh-2rem)] max-sm:max-w-[calc(100vw-2rem)] max-sm:w-full sm:max-w-[425px] p-0">
+					<DialogHeader className="p-6">
 						<DialogTitle>{image.name}</DialogTitle>
 						<DialogDescription className="flex justify-between w-full">
 							<span>{formatFileSize(image.size)}</span>
-							<span>{getRelativeTime(image.lastmodified)}</span>
+							<span>{format(image.lastmodified, "PPpp")}</span>
 						</DialogDescription>
 					</DialogHeader>
-					<div className="flex">
+					<div className="flex justify-center items-center overflow-hidden">
 						{/* eslint-disable-next-line @next/next/no-img-element */}
-						<img src={image.url} alt={image.name} />
+						<img
+							src={image.url}
+							alt={image.name}
+							className="max-w-full max-h-full object-contain"
+						/>
 					</div>
-					<DialogFooter>
+					<DialogFooter className="p-6">
 						<DialogClose asChild>
-							<Button variant="outline">Close</Button>
+							<Button variant="outline" onClick={() => toggleModal(false)}>
+								Close
+							</Button>
 						</DialogClose>
-						{/* <Button type="submit">Save changes</Button> */}
 					</DialogFooter>
 				</DialogContent>
 			</form>

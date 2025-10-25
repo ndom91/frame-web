@@ -120,7 +120,11 @@ export default function ImageCard({ item }: { item: FileObject }) {
 						</span>
 					</div>
 				</CardContent>
-				{showPreviewModal && <PreviewDialog image={item} />}
+				<PreviewDialog
+					image={item}
+					open={showPreviewModal}
+					toggleModal={(close) => setShowPreviewModal(close)}
+				/>
 			</Card>
 		</>
 	);
