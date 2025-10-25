@@ -99,7 +99,7 @@ export const formatDate = (input: string | Date | undefined) => {
 		month: "short",
 		day: "numeric",
 		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
+		// hour: "2-digit",
+		// minute: "2-digit",
 	});
 };

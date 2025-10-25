@@ -16,40 +16,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileObject } from "@/app/lib/r2";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import PreviewDialog from "./previewDialog";
-import { formatFileSize, getRelativeTime } from "@/lib/utils";
+import { formatDate, formatFileSize } from "@/lib/utils";
 import { useDeleteMedia } from "@/app/lib/queries/media";
 
 export default function ImageCard({ item }: { item: FileObject }) {
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
 	const deleteMedia = useDeleteMedia();
 	const imageRef = useRef<HTMLImageElement>(null);
-	const [scale, setScale] = useState(1);
-
-	const parallaxRate = useMemo(() => {
-		return Math.random() * 2;
-	}, []);
-
-	const scaleRate = useMemo(() => {
-		return Math.random() * 0.05 + 1.02; // Random between 1.05-1.15
-	}, []);
-
-	useEffect(() => {
-		const handleScroll = () => {
-			if (imageRef.current) {
-				const rect = imageRef.current.getBoundingClientRect();
-				const scrollProgress =
-					(window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-				setScale(1 + scrollProgress * (scaleRate - 1));
-			}
-		};
-
-		window.addEventListener("scroll", handleScroll, { passive: true });
-		handleScroll();
-
-		return () => window.removeEventListener("scroll", handleScroll);
-	}, [parallaxRate, scaleRate]);
 
 	const backgroundPosition = useMemo(() => {
 		const xOffset = (Math.random() - 0.5) * 40; // -20% to +20%
@@ -97,8 +72,6 @@ export default function ImageCard({ item }: { item: FileObject }) {
 						backgroundImage: `url(https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.key})`,
 						backgroundSize: "cover",
 						backgroundPosition: backgroundPosition,
-						transform: `scale3d(${scale}, ${scale}, 1)`,
-						transition: "transform 0.1s ease-in-out",
 					}}
 				>
 					<div className="absolute top-2 right-2">
@@ -132,16 +105,16 @@ export default function ImageCard({ item }: { item: FileObject }) {
 				<CardContent className="p-3">
 					<h4 className="font-medium text-sm truncate">{item.name}</h4>
 					<div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-						<span className="flex items-start gap-1 text-sm">
+						<span className="flex items-center gap-1 text-sm">
 							<File className="size-4" />
 							{formatFileSize(item.size)}
 						</span>
 						<span
-							className="flex items-start gap-1 text-sm "
+							className="flex items-center gap-1 text-sm "
 							title={item.lastmodified.toLocaleString()}
 						>
 							<Calendar className="size-4" />
-							{getRelativeTime(item.lastmodified)}
+							{formatDate(item.lastmodified)}
 						</span>
 					</div>
 				</CardContent>
