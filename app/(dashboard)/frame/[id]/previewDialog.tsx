@@ -24,7 +24,7 @@ export default function PreviewDialog({
 	return (
 		<Dialog open={open} onOpenChange={toggleModal}>
 			<form>
-				<DialogContent className="max-sm:h-[calc(100vh-2rem)] max-sm:max-w-[calc(100vw-2rem)] max-sm:w-full sm:max-w-[425px] p-0">
+				<DialogContent className="max-sm:h-[calc(100dvh-2rem)] max-sm:max-w-[calc(100vw-2rem)] max-sm:w-full sm:max-w-[425px] p-0">
 					<DialogHeader className="p-6">
 						<DialogTitle>{image.name}</DialogTitle>
 						<DialogDescription className="flex justify-between w-full">
