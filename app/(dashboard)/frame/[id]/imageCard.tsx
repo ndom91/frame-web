@@ -20,6 +20,7 @@ import { useState, useRef, useMemo } from "react";
 import PreviewDialog from "./previewDialog";
 import { formatDate, formatFileSize } from "@/lib/utils";
 import { useDeleteMedia } from "@/app/lib/queries/media";
+import { format } from "date-fns";
 
 export default function ImageCard({ item }: { item: FileObject }) {
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -111,7 +112,7 @@ export default function ImageCard({ item }: { item: FileObject }) {
 						</span>
 						<span
 							className="flex items-center gap-1 text-sm "
-							title={item.lastmodified.toLocaleString()}
+							title={format(item.lastmodified, "PPPppp")}
 						>
 							<Calendar className="size-4" />
 							{formatDate(item.lastmodified)}

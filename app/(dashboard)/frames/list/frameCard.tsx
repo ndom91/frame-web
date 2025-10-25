@@ -25,6 +25,7 @@ import {
 import type { Frame } from "@/lib/types";
 import { useMedia } from "@/app/lib/queries/media";
 import { getRelativeTime } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface Props {
 	frame: Frame;
@@ -166,7 +167,7 @@ export default function Frame({
 					{frame.status !== "offline" && frame.updatedAt && (
 						<div className="flex items-center gap-1 text-sm text-muted-foreground">
 							<ClockIcon className="size-4" />
-							Last sync: {getRelativeTime(frame.updatedAt)}
+							Uptime {format(frame.updatedAt, "PPP")}
 						</div>
 					)}
 				</div>

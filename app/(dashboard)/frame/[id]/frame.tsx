@@ -15,6 +15,8 @@ import {
 	ImageIcon,
 	FileWarning,
 } from "lucide-react";
+import { toast } from "sonner";
+import { format, subMinutes } from "date-fns";
 
 import ImageCard from "./imageCard";
 import { Button } from "@/components/ui/button";
@@ -32,7 +34,6 @@ import { Progress } from "@/components/ui/progress";
 import type { Frame } from "@/lib/types";
 import { getRelativeTime } from "@/lib/utils";
 import { useMedia, useUploadMedia } from "@/app/lib/queries/media";
-import { toast } from "sonner";
 import { formatFileSize } from "@/app/lib/image-utils";
 
 interface Props {
@@ -336,15 +337,19 @@ export default function FramePage({ frame }: Props) {
 									<span className="text-sm text-muted-foreground">
 										Last Sync
 									</span>
-									<span className="text-sm font-medium">
-										{frame.lastSync ?? "N/A"}
+									<span
+										className="text-sm font-medium"
+										suppressHydrationWarning={true}
+									>
+										{/* {frame.lastSync} */}
+										{format(subMinutes(new Date(), 10), "PPpp").toString()}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Uptime</span>
 									<span
 										className="text-sm font-medium"
-										title={new Date("2025-07-27T16:32:12").toLocaleString()}
+										title={format(new Date("2025-07-27T16:32:12"), "PPpp")}
 									>
 										{/* {frame.uptime} */}
 										{getRelativeTime(new Date("2025-07-27T16:32:12"))}
