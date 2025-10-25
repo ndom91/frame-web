@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Dispatch, SetStateAction, useMemo } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { DotsThreeIcon } from "@phosphor-icons/react/dist/ssr/DotsThree";
@@ -39,6 +39,7 @@ export default function Frame({
 }: Props) {
 	const router = useRouter();
 	const { data: mediaFiles = [] } = useMedia(frame.frameId);
+	const [isSyncLoading, setIsSyncLoading] = useState(false);
 
 	const handleSelectFrame = (frameId: number) => {
 		if (!setSelectedFrames) return;
@@ -113,7 +114,16 @@ export default function Frame({
 							>
 								View Details
 							</DropdownMenuItem>
-							<DropdownMenuItem>Sync Now</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => {
+									setIsSyncLoading(true);
+									setTimeout(() => {
+										setIsSyncLoading(false);
+									}, 1200);
+								}}
+							>
+								Sync Now
+							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() => router.push(`/frame/${frame.id}`)}
 							>
@@ -162,8 +172,20 @@ export default function Frame({
 				</div>
 
 				<div className="flex gap-2">
-					<Button variant="outline" size="sm" className="flex-1">
-						<ArrowsClockwiseIcon className="size-4" />
+					<Button
+						variant="outline"
+						size="sm"
+						className={`flex-1 ${isSyncLoading ? "hover:cursor-not-allowed opacity-50 ease-in-out" : ""}`}
+						onClick={() => {
+							setIsSyncLoading(true);
+							setTimeout(() => {
+								setIsSyncLoading(false);
+							}, 1200);
+						}}
+					>
+						<ArrowsClockwiseIcon
+							className={`size-4 ${isSyncLoading ? "animate-spin opacity-50 ease-in-out" : ""}`}
+						/>
 						Sync Now
 					</Button>
 					<Button
