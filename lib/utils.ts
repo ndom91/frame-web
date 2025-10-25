@@ -82,7 +82,7 @@ export const formatFileSize = (input: number | string | undefined) => {
 	} else {
 		bytes = input;
 	}
-	return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+	return `${(bytes / 1024).toFixed(1)} kB`;
 };
 
 export const formatDate = (input: string | Date | undefined) => {
