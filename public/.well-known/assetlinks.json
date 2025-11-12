@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "photos.domino.twa",
+        "sha256_cert_fingerprints": ["C3:D6:9E:D7:0A:1A:C6:81:55:CA:34:A1:27:E8:E2:34:58:95:97:EC:04:2A:E8:3D:6E:09:7F:EC:CD:95:79:DE"]
+      }
+    }]
