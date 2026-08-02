@@ -7,6 +7,7 @@ import { resizeImage, formatFileSize } from "@/app/lib/image-utils";
 
 export type MediaFile = FileObject & {
 	type?: string;
+	uploadedBy?: string;
 };
 
 export type UploadUrlResponse = {
@@ -83,13 +84,18 @@ export function useUploadMedia() {
 				});
 
 				if (!response.ok) {
-					const error = await response.text();
+					const body = await response.json().catch(() => null);
+					const error =
+						body?.error || (await response.text().catch(() => ""));
 					throw new Error(error || "Failed to upload file");
 				}
 
 				return response.json();
-			} catch (e) {
-				throw new Error(`Image upload failed: ${e}`);
+			} catch (error) {
+				if (error instanceof Error) {
+					throw error;
+				}
+				throw new Error("Image upload failed");
 			}
 		},
 		onSuccess: (newFile, variables) => {

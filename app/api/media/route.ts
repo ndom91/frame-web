@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listFiles, uploadFile } from "@/app/lib/r2-actions";
+import { deleteFile, listFiles, uploadFile } from "@/app/lib/r2-actions";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
 import pRetry from "p-retry";
+import { db } from "@/app/lib/db";
+import { media } from "@/db/media.sql";
+import { user } from "@/db/user.sql";
+import { frame } from "@/db/frame.sql";
+import { usersToFrames } from "@/db/frameOnUser.sql";
+import { and, eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
 	const session = await auth.api.getSession({
@@ -15,10 +21,46 @@ export async function GET(request: NextRequest) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const prefix = searchParams.get("prefix") || "";
+		if (!prefix) {
+			return NextResponse.json(
+				{ error: "A frame prefix is required" },
+				{ status: 400 },
+			);
+		}
 
-		const files = await listFiles(prefix);
+		const frameRecord = await db.query.frame.findFirst({
+			where: eq(frame.frameId, prefix),
+		});
+		if (!frameRecord) {
+			return NextResponse.json({ error: "Frame not found" }, { status: 404 });
+		}
+		const membership = await db.query.usersToFrames.findFirst({
+			where: and(
+				eq(usersToFrames.frameId, frameRecord.id),
+				eq(usersToFrames.userId, session.user.id),
+			),
+		});
+		if (!membership) {
+			return NextResponse.json({ error: "Restricted" }, { status: 403 });
+		}
+		const mediaQuery = db
+			.select({ url: media.url, uploadedBy: user.name })
+			.from(media)
+			.leftJoin(user, eq(media.createdBy, user.id));
+		const mediaRecords = await mediaQuery.where(
+			eq(media.frameId, String(frameRecord.id)),
+		);
+		const files = await listFiles(`${prefix}/`);
+		const uploadedByUrl = new Map(
+			mediaRecords.map((record) => [record.url, record.uploadedBy ?? undefined]),
+		);
 
-		return NextResponse.json(files);
+		return NextResponse.json(
+			files.map((file) => ({
+				...file,
+				uploadedBy: uploadedByUrl.get(file.url),
+			})),
+		);
 	} catch (error) {
 		console.error("Error fetching media files:", error);
 		return NextResponse.json(
@@ -48,6 +90,26 @@ export async function POST(request: NextRequest) {
 		if (!key) {
 			return NextResponse.json({ error: "No key provided" }, { status: 400 });
 		}
+		const frameKey = key.split("/")[0];
+		const frameRecord = await db.query.frame.findFirst({
+			where: eq(frame.frameId, frameKey),
+		});
+		if (!frameRecord) {
+			return NextResponse.json({ error: "Frame not found" }, { status: 404 });
+		}
+		const membership = await db.query.usersToFrames.findFirst({
+			where: and(
+				eq(usersToFrames.frameId, frameRecord.id),
+				eq(usersToFrames.userId, session.user.id),
+			),
+		});
+		if (!membership || membership.role === "READ") {
+			return NextResponse.json({ error: "Restricted" }, { status: 403 });
+		}
+		const fileUrl = `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${key}`;
+		const existingMedia = await db.query.media.findFirst({
+			where: eq(media.url, fileUrl),
+		});
 
 		if (!file.type.startsWith("image/")) {
 			return NextResponse.json(
@@ -74,12 +136,42 @@ export async function POST(request: NextRequest) {
 			name: file.name,
 			size: file.size,
 			type: file.type,
-			url: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${key}`,
+			url: fileUrl,
 			lastmodified: new Date(),
 			etag: result.ETag?.replace(/"/g, "") || "",
 		};
+		try {
+			if (existingMedia) {
+				await db
+					.update(media)
+					.set({
+						title: file.name,
+						createdBy: session.user.id,
+						frameId: String(frameRecord.id),
+						updatedAt: new Date(),
+					})
+					.where(eq(media.id, existingMedia.id));
+			} else {
+				await db.insert(media).values({
+					title: file.name,
+					url: fileInfo.url,
+					createdBy: session.user.id,
+					frameId: String(frameRecord.id),
+				});
+			}
+		} catch (error) {
+			if (!existingMedia) {
+				await deleteFile(key).catch((cleanupError) => {
+					console.error("Failed to clean up uploaded media:", cleanupError);
+				});
+			}
+			throw error;
+		}
 
-		return NextResponse.json(fileInfo, { status: 201 });
+		return NextResponse.json(
+			{ ...fileInfo, uploadedBy: session.user.name },
+			{ status: 201 },
+		);
 	} catch (error) {
 		console.error("Error uploading file:", error);
 		return NextResponse.json(

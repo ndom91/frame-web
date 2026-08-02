@@ -1,40 +1,29 @@
 import {
-	MoreHorizontal,
 	Trash2,
 	Download,
-	Eye,
 	Calendar,
 	File,
+	UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileObject } from "@/app/lib/r2";
-import { useState, useRef, useMemo } from "react";
+import { useState } from "react";
 import PreviewDialog from "./previewDialog";
 import { formatDate, formatFileSize } from "@/lib/utils";
-import { useDeleteMedia } from "@/app/lib/queries/media";
+import { type MediaFile, useDeleteMedia } from "@/app/lib/queries/media";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
-export default function ImageCard({ item }: { item: FileObject }) {
+export default function ImageCard({ item }: { item: MediaFile }) {
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
 	const deleteMedia = useDeleteMedia();
-	const imageRef = useRef<HTMLImageElement>(null);
 
-	const backgroundPosition = useMemo(() => {
-		const xOffset = (Math.random() - 0.5) * 40; // -20% to +20%
-		const yOffset = (Math.random() - 0.5) * 40; // -20% to +20%
-		return `${50 + xOffset}% ${50 + yOffset}%`;
-	}, []);
-
-	const handleDelete = (file: FileObject) => {
-		deleteMedia.mutateAsync(file.key);
+	const handleDelete = async (file: MediaFile) => {
+		try {
+			await deleteMedia.mutateAsync(file.key);
+		} catch {
+			toast.error("Could not delete the image. Please try again.");
+		}
 	};
 
 	const handleDownload = async () => {
@@ -53,9 +42,9 @@ export default function ImageCard({ item }: { item: FileObject }) {
 		document.body.appendChild(a);
 		a.click();
 
-		// Firefox workaround
 		setTimeout(() => {
 			document.body.removeChild(a);
+			URL.revokeObjectURL(href);
 		}, 0);
 	};
 
@@ -66,58 +55,60 @@ export default function ImageCard({ item }: { item: FileObject }) {
 	return (
 		<>
 			<Card key={item.key} className="overflow-hidden gap-2 pt-0 pb-2">
-				<div
-					ref={imageRef}
-					className="relative overflow-hidden h-56 hover:cursor-pointer"
-					style={{
-						backgroundImage: `url(https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${item.key})`,
-						backgroundSize: "cover",
-						backgroundPosition: backgroundPosition,
-					}}
+				<button
+					type="button"
+					className="block w-full cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
 					onClick={showPreviewImage}
+					aria-label={`Preview ${item.name}`}
 				>
-					<div className="absolute top-2 right-2">
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="secondary" size="sm">
-									<MoreHorizontal className="h-4 w-4" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
-								<DropdownMenuItem onClick={showPreviewImage}>
-									<Eye className="h-4 w-4 mr-2" />
-									Preview
-								</DropdownMenuItem>
-								<DropdownMenuItem onClick={handleDownload}>
-									<Download className="h-4 w-4 mr-2" />
-									Download
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									className="text-red-600"
-									onClick={() => handleDelete(item)}
-								>
-									<Trash2 className="h-4 w-4 mr-2" />
-									Delete
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-				</div>
+					{/* eslint-disable-next-line @next/next/no-img-element */}
+					<img src={item.url} alt={item.name} className="block h-auto w-full" />
+				</button>
 				<CardContent className="p-3">
 					<h4 className="font-medium text-sm truncate">{item.name}</h4>
-					<div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+					<div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
 						<span className="flex items-center gap-1 text-sm">
 							<File className="size-4" />
 							{formatFileSize(item.size)}
 						</span>
-						<span
-							className="flex items-center gap-1 text-sm "
-							title={format(item.lastmodified, "PPPppp")}
-						>
-							<Calendar className="size-4" />
-							{formatDate(item.lastmodified)}
-						</span>
+					</div>
+					<div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+						<div className="flex min-w-0 items-center gap-3">
+							<span
+								className="flex shrink-0 items-center gap-1 text-sm"
+								title={format(item.lastmodified, "PPPppp")}
+							>
+								<Calendar className="size-4" />
+								{formatDate(item.lastmodified)}
+							</span>
+							<span className="flex min-w-0 items-center gap-1 truncate text-sm">
+								<UserRound className="size-4 shrink-0" />
+								{item.uploadedBy ?? "Unknown"}
+							</span>
+						</div>
+						<div className="flex shrink-0 items-center">
+							<Button
+								variant="ghost"
+								size="icon"
+								className="size-11"
+								type="button"
+								onClick={handleDownload}
+								aria-label={`Download ${item.name}`}
+							>
+								<Download />
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="size-11 text-destructive hover:text-destructive"
+								type="button"
+								onClick={() => void handleDelete(item)}
+								disabled={deleteMedia.isPending}
+								aria-label={`Delete ${item.name}`}
+							>
+								<Trash2 />
+							</Button>
+						</div>
 					</div>
 				</CardContent>
 				<PreviewDialog

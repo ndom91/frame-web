@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSignedUrlForUpload } from "@/app/lib/r2-actions";
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
+import { db } from "@/app/lib/db";
+import { frame } from "@/db/frame.sql";
+import { usersToFrames } from "@/db/frameOnUser.sql";
+import { and, eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session) {
+		return NextResponse.json({ error: "Restricted" }, { status: 403 });
+	}
+
 	try {
 		const { key, contentType } = await request.json();
 
@@ -22,6 +35,21 @@ export async function POST(request: NextRequest) {
 				{ status: 400 },
 			);
 		}
+		const frameRecord = await db.query.frame.findFirst({
+			where: eq(frame.frameId, key.split("/")[0]),
+		});
+		if (!frameRecord) {
+			return NextResponse.json({ error: "Frame not found" }, { status: 404 });
+		}
+		const membership = await db.query.usersToFrames.findFirst({
+			where: and(
+				eq(usersToFrames.frameId, frameRecord.id),
+				eq(usersToFrames.userId, session.user.id),
+			),
+		});
+		if (!membership || membership.role === "READ") {
+			return NextResponse.json({ error: "Restricted" }, { status: 403 });
+		}
 
 		const signedUrl = await getSignedUrlForUpload(key, contentType);
 
@@ -39,4 +67,3 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
-
