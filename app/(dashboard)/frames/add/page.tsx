@@ -2,12 +2,12 @@ import { Metadata } from "next";
 import { FindDevice } from "./find-device";
 
 export const metadata: Metadata = {
-  title: "Domino Frame - Frame",
+  title: "Add Frame — Domino Frame",
 };
 
 export default function Page() {
   return (
-    <div className="flex flex-col gap-4 p-4 pt-0 items-center w-1/2 flex-1 mx-auto">
+    <div className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center gap-4 p-4 pt-0">
       <h1 className="text-2xl">Add Frame</h1>
       <FindDevice />
     </div>

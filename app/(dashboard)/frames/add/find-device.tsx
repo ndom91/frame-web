@@ -11,7 +11,7 @@ import {
 	BLE_CONFIG,
 } from "@/app/lib/frame-setup";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { wait } from "@/lib/utils";
 
 export class PhotoFrameSetupClient implements PhotoFrameSetup {
@@ -60,115 +60,181 @@ async function setupPhotoFrame(
 ): Promise<void> {
 	const client = new PhotoFrameSetupClient();
 
-	try {
-		// 1. Connect to frame
-		await client.connect();
-		toast.success("Connected to frame");
+	// 1. Connect to frame
+	await client.connect();
+	toast.success("Connected to frame");
 
-		// 2. Send WiFi credentials
-		await client.setWiFiCredentials(wifiCredentials);
-		toast.info("WiFi credentials sent");
+	// 2. Send WiFi credentials
+	await client.setWiFiCredentials(wifiCredentials);
+	toast.info("WiFi credentials sent");
 
-		// 3. Wait a moment for processing
-		await wait(1000);
+	// 3. Wait a moment for processing
+	await wait(1000);
 
-		// 4. Send frame configuration
-		await client.setFrameConfig(frameConfig);
-		toast.info("Frame configuration sent");
+	// 4. Send frame configuration
+	await client.setFrameConfig(frameConfig);
+	toast.info("Frame configuration sent");
 
-		// 5. Wait a moment for processing
-		await wait(1000);
+	// 5. Wait a moment for processing
+	await wait(1000);
 
-		// 6. Optional: Test WiFi before completing
-		await client.sendCommand("test_wifi");
-		toast.info("WiFi test initiated");
+	// 6. Optional: Test WiFi before completing
+	await client.sendCommand("test_wifi");
+	toast.info("WiFi test initiated");
 
-		// 7. Wait for test completion
-		await wait(3000);
+	// 7. Wait for test completion
+	await wait(3000);
 
-		// 8. Complete setup
-		await client.sendCommand("complete_setup");
-		toast.info("Setup completed");
+	// 8. Complete setup
+	await client.sendCommand("complete_setup");
 
-		// TODO: Write Frame to DB
-		// TODO: Show BLE Frames in table / list
-	} catch (error) {
-		toast.error("Setup failed", {
-			// @ts-expect-error FIX Error Type
-			description: error?.message ?? error,
-		});
-		throw error;
-	}
+	// TODO: Write Frame to DB
+	// TODO: Show BLE Frames in table / list
 }
 
-export function FindDevice() {
-	const [wifiCredentials, setWiFiCredentials] = useState<WiFiCredentials>();
-	const [frameConfig, setFrameConfig] = useState<FrameConfig>({
-		name: "",
-		s3_bucket: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.R2_BUCKET}`,
-	});
+type FieldName = "name" | "ssid" | "password";
+type FieldErrors = Partial<Record<FieldName, string>>;
 
-	function initFrameSetup() {
-		if (!wifiCredentials?.ssid || !wifiCredentials?.password) {
-			toast.error("Please enter WiFi credentials");
+export function FindDevice() {
+	const [name, setName] = useState("");
+	const [ssid, setSsid] = useState("");
+	const [password, setPassword] = useState("");
+	const [errors, setErrors] = useState<FieldErrors>({});
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const fieldRefs = {
+		name: useRef<HTMLInputElement>(null),
+		ssid: useRef<HTMLInputElement>(null),
+		password: useRef<HTMLInputElement>(null),
+	};
+
+	const validate = (): FieldErrors => {
+		const nextErrors: FieldErrors = {};
+		if (!name.trim()) nextErrors.name = "Give the frame a name.";
+		if (!ssid.trim()) nextErrors.ssid = "Enter your network name.";
+		if (!password) nextErrors.password = "Enter your network password.";
+		return nextErrors;
+	};
+
+	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		const nextErrors = validate();
+		setErrors(nextErrors);
+
+		// Move focus to the first problem so the error isn't only visual.
+		const firstInvalid = (["name", "ssid", "password"] as const).find(
+			(field) => nextErrors[field],
+		);
+		if (firstInvalid) {
+			fieldRefs[firstInvalid].current?.focus();
 			return;
 		}
 
-		setupPhotoFrame(frameConfig, wifiCredentials);
-	}
+		setIsSubmitting(true);
+		try {
+			await setupPhotoFrame(
+				{
+					name: name.trim(),
+					s3_bucket: `https://${process.env.NEXT_PUBLIC_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.NEXT_PUBLIC_R2_BUCKET}`,
+				},
+				{ ssid: ssid.trim(), password },
+			);
+			toast.success("Setup complete", {
+				description: `${name.trim()} is configured and connecting to ${ssid.trim()}.`,
+			});
+		} catch (error) {
+			console.error("Frame setup failed", error);
+			toast.error("Setup failed", {
+				description:
+					error instanceof Error
+						? `${error.message} Move closer to the frame and try again.`
+						: "Move closer to the frame and try again.",
+			});
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	const describedBy = (field: FieldName) =>
+		errors[field] ? `${field}-error` : undefined;
 
 	return (
-		<div className="flex flex-col gap-4 w-full">
+		<form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
 			<div className="grid gap-2">
-				<Label htmlFor="name">Frame Name</Label>
+				<Label htmlFor="frame-name">Frame Name</Label>
 				<Input
+					ref={fieldRefs.name}
 					data-1p-ignore
-					id="name"
+					id="frame-name"
+					name="frameName"
 					type="text"
-					placeholder="My Frame"
-					onChange={(e) => {
-						setFrameConfig({ ...frameConfig, name: e.target.value });
-					}}
-					required
+					autoComplete="off"
+					spellCheck={false}
+					placeholder="Living room frame…"
+					value={name}
+					aria-invalid={Boolean(errors.name)}
+					aria-describedby={describedBy("name")}
+					onChange={(e) => setName(e.target.value)}
 				/>
+				{errors.name && (
+					<p id="name-error" className="text-sm text-destructive">
+						{errors.name}
+					</p>
+				)}
 			</div>
+
 			<div className="grid gap-2">
-				<div className="flex items-center">
-					<Label htmlFor="wifi-ssid">WiFi SSID</Label>
-				</div>
+				<Label htmlFor="wifi-ssid">WiFi Network</Label>
 				<Input
+					ref={fieldRefs.ssid}
 					data-1p-ignore
 					id="wifi-ssid"
+					name="wifiSsid"
 					type="text"
-					required
-					onChange={(e) => {
-						// @ts-expect-error update inline update typings
-						setWiFiCredentials({
-							...wifiCredentials,
-							ssid: e.target.value,
-						});
-					}}
+					autoComplete="off"
+					spellCheck={false}
+					placeholder="MyHomeNetwork…"
+					value={ssid}
+					aria-invalid={Boolean(errors.ssid)}
+					aria-describedby={describedBy("ssid")}
+					onChange={(e) => setSsid(e.target.value)}
 				/>
+				{errors.ssid && (
+					<p id="ssid-error" className="text-sm text-destructive">
+						{errors.ssid}
+					</p>
+				)}
 			</div>
+
 			<div className="grid gap-2">
-				<div className="flex items-center">
-					<Label htmlFor="wifi-password">WiFi Password</Label>
-				</div>
+				<Label htmlFor="wifi-password">WiFi Password</Label>
 				<Input
+					ref={fieldRefs.password}
 					data-1p-ignore
 					id="wifi-password"
+					name="wifiPassword"
 					type="password"
-					required
-					onChange={(e) => {
-						// @ts-expect-error update inline update typings
-						setWiFiCredentials({
-							...wifiCredentials,
-							password: e.target.value,
-						});
-					}}
+					autoComplete="off"
+					spellCheck={false}
+					value={password}
+					aria-invalid={Boolean(errors.password)}
+					aria-describedby={describedBy("password")}
+					onChange={(e) => setPassword(e.target.value)}
 				/>
+				{errors.password && (
+					<p id="password-error" className="text-sm text-destructive">
+						{errors.password}
+					</p>
+				)}
 			</div>
-			<Button onClick={initFrameSetup}>Start Device Setup</Button>
-		</div>
+
+			<Button type="submit" disabled={isSubmitting}>
+				{isSubmitting ? "Setting up frame…" : "Start Device Setup"}
+			</Button>
+			<p aria-live="polite" className="sr-only">
+				{isSubmitting ? "Setting up frame, this takes a few seconds." : ""}
+			</p>
+		</form>
 	);
 }

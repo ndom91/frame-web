@@ -1,22 +1,41 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Frame from "@/app/(dashboard)/frame/[id]/frame";
 import { db } from "@/app/lib/db";
 
-export const metadata: Metadata = {
-	title: "Domino Frame - Frames",
-};
+// Route params are always strings, even for a numeric segment.
+type PageProps = { params: Promise<{ id: string }> };
 
-export default async function Page({
-	params,
-}: {
-	params: Promise<{ id: number }>;
-}) {
-	const { id } = await params;
-	const frame = await db.query.frame.findFirst({
-		where: (frame, { eq }) => eq(frame.id, id),
+function parseFrameId(id: string) {
+	const parsed = Number.parseInt(id, 10);
+	return Number.isNaN(parsed) ? null : parsed;
+}
+
+async function getFrame(id: string) {
+	const frameId = parseFrameId(id);
+	if (frameId === null) return undefined;
+
+	return db.query.frame.findFirst({
+		where: (frame, { eq }) => eq(frame.id, frameId),
 	});
+}
 
-	if (!frame) return <div>Frame not found</div>;
+export async function generateMetadata({
+	params,
+}: PageProps): Promise<Metadata> {
+	const { id } = await params;
+	const frame = await getFrame(id);
+
+	return {
+		title: frame ? `${frame.title} — Domino Frame` : "Domino Frame",
+	};
+}
+
+export default async function Page({ params }: PageProps) {
+	const { id } = await params;
+	const frame = await getFrame(id);
+
+	if (!frame) notFound();
 
 	return (
 		<div>

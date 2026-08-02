@@ -2,11 +2,38 @@
 
 import { useFrames } from "@/app/lib/queries/frames";
 import Frame from "./frames/list/frameCard";
+import SkeletonCard from "@/components/card-skeleton";
 import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
 import { ImageIcon } from "@phosphor-icons/react/dist/ssr/Image";
 import { useQueries } from "@tanstack/react-query";
+import { useLocale } from "@/app/lib/use-locale";
+
+function StatTile({
+	label,
+	value,
+	icon,
+	iconClassName,
+}: {
+	label: string;
+	value: string;
+	icon: React.ReactNode;
+	iconClassName?: string;
+}) {
+	return (
+		<div className="relative flex flex-col justify-between overflow-hidden rounded-xl bg-muted/50 p-5">
+			<div aria-hidden="true" className={iconClassName}>
+				{icon}
+			</div>
+			<div className="text-sidebar-foreground text-8xl tabular-nums">
+				{value}
+			</div>
+			<div className="text-sidebar-foreground/75 text-2xl">{label}</div>
+		</div>
+	);
+}
 
 export default function DashboardPage() {
+	const locale = useLocale();
 	const {
 		data: frames = [],
 		isLoading: framesLoading,
@@ -35,36 +62,51 @@ export default function DashboardPage() {
 		return total + (query.data?.length || 0);
 	}, 0);
 
+	const formatCount = (count: number) =>
+		new Intl.NumberFormat(locale).format(count);
+
 	return (
 		<>
 			<div className="grid auto-rows-min gap-4 md:grid-cols-2">
-				<div className=" flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
-					<FrameCornersIcon
-						size={168}
-						className="absolute -top-2 -right-10 rotate-10 text-muted-foreground/20"
-					/>
-					<div className="text-sidebar-foreground text-8xl">
-						{frames.length ?? 0}
-					</div>
-					<div className="text-sidebar-foreground/75 text-2xl">Frames</div>
-				</div>
-				<div className=" flex flex-col justify-between relative rounded-xl bg-muted/50 overflow-hidden p-5">
-					<ImageIcon
-						size={168}
-						className="absolute -top-2 -right-10 rotate-10 text-muted-foreground/15"
-					/>
-					<div className="text-sidebar-foreground text-8xl">
-						{totalMediaCount ?? 0}
-					</div>
-					<div className="text-sidebar-foreground/75 text-2xl">Images</div>
-				</div>
+				<StatTile
+					label="Frames"
+					value={formatCount(frames.length)}
+					iconClassName="absolute -top-2 -right-10 rotate-[10deg] text-muted-foreground/20"
+					icon={<FrameCornersIcon size={168} />}
+				/>
+				<StatTile
+					label="Images"
+					value={formatCount(totalMediaCount)}
+					iconClassName="absolute -top-2 -right-10 rotate-[10deg] text-muted-foreground/15"
+					icon={<ImageIcon size={168} />}
+				/>
 			</div>
-			<div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-5">
+			<div className="min-h-[100dvh] flex-1 rounded-xl bg-muted/50 p-5 md:min-h-min">
 				<div className="grid auto-rows-min gap-4 md:grid-cols-2 xl:grid-cols-3">
+					{framesLoading &&
+						Array.from({ length: 3 }).map((_, index) => (
+							<SkeletonCard key={index} />
+						))}
+
 					{!framesLoading &&
 						!framesError &&
 						frames.map((frame) => <Frame key={frame.id} frame={frame} />)}
 				</div>
+
+				{!framesLoading && framesError && (
+					<div role="alert" className="py-12 text-center">
+						<p className="mb-2 text-destructive">Couldn&rsquo;t load frames</p>
+						<p className="text-muted-foreground text-sm">
+							{framesError.message}
+						</p>
+					</div>
+				)}
+
+				{!framesLoading && !framesError && frames.length === 0 && (
+					<p className="py-12 text-center text-muted-foreground">
+						No frames yet. Add your first frame to get started.
+					</p>
+				)}
 			</div>
 		</>
 	);

@@ -21,13 +21,19 @@ export default async function Layout({
 		session = await auth.api.getSession({
 			headers: await headers(),
 		});
-
-		if (!session) {
-			redirect("/login");
-		}
 	} catch (e) {
+		// Next signals control flow by throwing errors that carry a `digest`
+		// (redirect, notFound, dynamic-rendering bailout). Those must propagate —
+		// swallowing them breaks rendering and floods the build log. Only a real
+		// session-fetch failure should fall through to the redirect below.
+		if (e && typeof e === "object" && "digest" in e) throw e;
 		console.error("Session Error", e);
-		if (e) redirect("/login");
+	}
+
+	// Kept outside the try: `redirect()` also signals by throwing.
+
+	if (!session) {
+		redirect("/login");
 	}
 
 	return (
@@ -40,8 +46,9 @@ export default async function Layout({
 			}
 		>
 			<AppSidebar session={session} />
-			<SidebarInset>
-				<header className="flex h-16 shrink-0 items-center gap-2 px-4">
+			{/* SidebarInset renders the <main> landmark, so this is the skip-link target. */}
+			<SidebarInset id="main-content">
+				<header className="flex h-16 shrink-0 items-center gap-2 px-4 pt-[env(safe-area-inset-top)]">
 					<SidebarTrigger className="-ml-1" />
 					<Separator
 						orientation="vertical"

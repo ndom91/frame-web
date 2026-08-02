@@ -45,7 +45,7 @@ type Props = {
 	session: Session | null;
 } & React.ComponentProps<typeof Sidebar>;
 
-export function AppSidebar({ ...props }: Props) {
+export function AppSidebar({ session, ...props }: Props) {
 	return (
 		<Sidebar {...props}>
 			<SidebarHeader>
@@ -53,18 +53,22 @@ export function AppSidebar({ ...props }: Props) {
 					<SidebarMenuItem>
 						<SidebarMenuButton size="lg" asChild>
 							<Link href="/">
-								<div className=" text-sidebar-primary-foreground flex items-center justify-center rounded-lg">
+								<div className="text-sidebar-primary-foreground flex items-center justify-center rounded-lg">
 									<Image
 										src={Logo}
-										alt="Frame Logo"
+										alt=""
 										width={36}
 										height={36}
-										className="invert"
+										// The source artwork is dark, so it only needs inverting
+										// against the dark theme's surface.
+										className="dark:invert"
 									/>
 								</div>
 								<div className="flex flex-col gap-0.5 leading-none">
-									<span className="font-medium">Domino Frame</span>
-									<span className="text-muted-foreground">
+									<span className="font-medium" translate="no">
+										Domino Frame
+									</span>
+									<span className="text-muted-foreground tabular-nums">
 										v{packageJson.version}
 									</span>
 								</div>
@@ -78,7 +82,7 @@ export function AppSidebar({ ...props }: Props) {
 				<NavFrames />
 			</SidebarContent>
 			<SidebarFooter>
-				{props.session?.user && <NavUser user={props.session?.user} />}
+				{session?.user && <NavUser user={session.user} />}
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

@@ -30,76 +30,119 @@ export function camelCaseKeys<T>(obj: T): T {
 	for (const [key, value] of Object.entries(obj)) {
 		const camelKey = key
 			.toLowerCase()
-			.replace(/[_-\s]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ""));
+			.replace(/[_\-\s]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ""));
 		result[camelKey] = value;
 	}
 	return result as T;
 }
 
-export function getRelativeTime(date: Date) {
-	const now = new Date().getTime();
-	const isValidDate = date instanceof Date && !isNaN(date.getTime());
-	const diffInSeconds = Math.floor(
-		(now - (isValidDate ? date.getTime() : new Date(date).getTime())) / 1000,
-	);
-	const isFuture = diffInSeconds < 0;
+/**
+ * Locale used when none is supplied.
+ *
+ * Formatting must produce identical output on the server and on the first
+ * client render, so these helpers cannot silently fall back to the runtime
+ * locale (Node's on the server, the browser's on the client) — that would
+ * desync the two and trigger a hydration mismatch. Components that want the
+ * visitor's real locale should pass one in from `useLocale()`
+ * (`app/lib/use-locale.ts`), which only switches over after mount.
+ */
+export const DEFAULT_LOCALE = "en-US";
+
+/** Narrow width space, so a value and its unit never wrap apart. */
+const NBSP = " ";
+
+function toDate(input: string | number | Date | null | undefined): Date | null {
+	if (input === null || input === undefined || input === "") return null;
+	const date = input instanceof Date ? input : new Date(input);
+	return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function getRelativeTime(
+	date: string | number | Date | null | undefined,
+	locale: string = DEFAULT_LOCALE,
+) {
+	const parsed = toDate(date);
+	if (!parsed) return "";
+
+	const diffInSeconds = Math.round((parsed.getTime() - Date.now()) / 1000);
 	const absDiff = Math.abs(diffInSeconds);
 
-	const intervals = [
-		{ label: "year", seconds: 31536000 },
-		{ label: "month", seconds: 2592000 },
-		{ label: "week", seconds: 604800 },
-		{ label: "day", seconds: 86400 },
-		{ label: "hour", seconds: 3600 },
-		{ label: "minute", seconds: 60 },
-		{ label: "second", seconds: 1 },
+	if (absDiff < 30) return "just now";
+
+	const units: { unit: Intl.RelativeTimeFormatUnit; seconds: number }[] = [
+		{ unit: "year", seconds: 31536000 },
+		{ unit: "month", seconds: 2592000 },
+		{ unit: "week", seconds: 604800 },
+		{ unit: "day", seconds: 86400 },
+		{ unit: "hour", seconds: 3600 },
+		{ unit: "minute", seconds: 60 },
+		{ unit: "second", seconds: 1 },
 	];
 
-	// Handle "just now" case
-	if (absDiff < 30) {
-		return "just now";
-	}
+	const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
 
-	// Find the appropriate interval
-	for (const interval of intervals) {
-		const count = Math.floor(absDiff / interval.seconds);
-		if (count >= 1) {
-			const plural = count !== 1 ? "s" : "";
-			const timeText = `${count} ${interval.label}${plural}`;
-			return isFuture ? `in ${timeText}` : `${timeText} ago`;
+	for (const { unit, seconds } of units) {
+		if (absDiff >= seconds) {
+			return formatter.format(Math.trunc(diffInSeconds / seconds), unit);
 		}
 	}
 
 	return "just now";
 }
 
-export const formatFileSize = (input: number | string | undefined) => {
-	if (!input) return;
-	let bytes: number;
+const FILE_SIZE_UNITS = ["B", "kB", "MB", "GB", "TB"] as const;
 
-	if (typeof input === "string") {
-		bytes = parseInt(input);
-	} else {
-		bytes = input;
-	}
-	return `${(bytes / 1024).toFixed(1)} kB`;
-};
+/**
+ * Formats a byte count using SI units, so the divisor (1000) and the label
+ * agree — the previous implementation divided by 1024 but labelled the result
+ * "kB", and only ever emitted kB, rendering 3.5 GB as "3670016.0 kB".
+ */
+export function formatFileSize(
+	input: number | string | null | undefined,
+	locale: string = DEFAULT_LOCALE,
+): string {
+	const bytes = typeof input === "string" ? Number.parseInt(input, 10) : input;
 
-export const formatDate = (input: string | Date | undefined) => {
-	if (!input) return;
-	let date;
+	if (bytes === null || bytes === undefined || Number.isNaN(bytes)) return "";
+	if (bytes <= 0) return `0${NBSP}B`;
 
-	if (typeof input === "string") {
-		date = new Date(input);
-	} else {
-		date = input;
-	}
+	const exponent = Math.min(
+		Math.floor(Math.log10(bytes) / 3),
+		FILE_SIZE_UNITS.length - 1,
+	);
+	const value = bytes / 1000 ** exponent;
 
-	return date.toLocaleDateString("en-US", {
+	const formatted = new Intl.NumberFormat(locale, {
+		maximumFractionDigits: exponent === 0 ? 0 : 1,
+	}).format(value);
+
+	return `${formatted}${NBSP}${FILE_SIZE_UNITS[exponent]}`;
+}
+
+export function formatDate(
+	input: string | number | Date | null | undefined,
+	locale: string = DEFAULT_LOCALE,
+): string {
+	const date = toDate(input);
+	if (!date) return "";
+
+	return new Intl.DateTimeFormat(locale, {
 		month: "short",
 		day: "numeric",
 		year: "numeric",
-		// hour: "2-digit",
-		// minute: "2-digit",
-	});
-};
+	}).format(date);
+}
+
+/** Same value as `formatDate`, plus the time — for tooltips and detail rows. */
+export function formatDateTime(
+	input: string | number | Date | null | undefined,
+	locale: string = DEFAULT_LOCALE,
+): string {
+	const date = toDate(input);
+	if (!date) return "";
+
+	return new Intl.DateTimeFormat(locale, {
+		dateStyle: "medium",
+		timeStyle: "short",
+	}).format(date);
+}

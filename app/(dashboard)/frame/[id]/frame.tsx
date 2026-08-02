@@ -1,11 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useId, useState } from "react";
+import Link from "next/link";
 import {
 	ArrowLeft,
-	Wifi,
-	WifiOff,
 	Monitor,
 	MapPin,
 	Upload,
@@ -16,7 +14,7 @@ import {
 	FileWarning,
 } from "lucide-react";
 import { toast } from "sonner";
-import { format, subMinutes } from "date-fns";
+import { useRouter } from "next/navigation";
 
 import ImageCard from "./imageCard";
 import { Button } from "@/components/ui/button";
@@ -31,37 +29,88 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
+import { FrameStatusBadge, FrameStatusIcon } from "@/components/frame-status";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { Frame } from "@/lib/types";
-import { getRelativeTime } from "@/lib/utils";
+import { formatDateTime, formatFileSize } from "@/lib/utils";
+import { useLocale } from "@/app/lib/use-locale";
 import { useMedia, useUploadMedia } from "@/app/lib/queries/media";
-import { formatFileSize } from "@/app/lib/image-utils";
+import { useDeleteFrame } from "@/app/lib/queries/frames";
 
 interface Props {
 	frame: Frame;
 }
 
-export const getStatusBadge = (status: string | null) => {
-	if (!status) return;
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
-	const variants = {
-		online: "bg-lime-100 text-lime-800 border-lime-200",
-		offline: "bg-rose-100 text-rose-800 border-rose-200",
-		syncing: "bg-sky-100 text-sky-800 border-sky-200",
-	};
+/**
+ * Placeholder telemetry. `Frame` carries no storage fields yet, so these are
+ * fixed constants rather than invented per-frame values — but the label and the
+ * progress bar are now derived from the same numbers instead of disagreeing.
+ */
+const STORAGE_USED_BYTES = 1_500_000_000;
+const STORAGE_TOTAL_BYTES = 32_000_000_000;
 
+function EmptyState({
+	uploadInputId,
+	onFilesSelected,
+}: {
+	uploadInputId: string;
+	onFilesSelected: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
 	return (
-		<Badge
-			variant="outline"
-			className={variants[status as keyof typeof variants]}
-		>
-			{status.charAt(0).toUpperCase() + status.slice(1)}
-		</Badge>
+		<div className="flex flex-col items-center justify-center px-4 py-16">
+			<div className="relative mb-6">
+				<div
+					aria-hidden="true"
+					className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-300 to-purple-400"
+				>
+					<div className="absolute inset-0 bg-gradient-to-br from-blue-700/50 to-purple-700/50" />
+					<div className="relative">
+						<ImageIcon className="mb-2 h-12 w-12 text-blue-100" />
+						<div className="flex justify-center gap-1">
+							<div className="h-2 w-2 animate-bounce rounded-full bg-blue-300 [animation-delay:-0.3s]" />
+							<div className="h-2 w-2 animate-bounce rounded-full bg-purple-300 [animation-delay:-0.15s]" />
+							<div className="h-2 w-2 animate-bounce rounded-full bg-blue-300" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<h3 className="mb-2 text-xl font-semibold text-muted-foreground">
+				No media uploaded yet
+			</h3>
+			<p className="mb-6 max-w-sm text-center text-muted-foreground">
+				Upload your first images to start displaying beautiful memories on your
+				digital frame.
+			</p>
+			<input
+				id={uploadInputId}
+				type="file"
+				multiple
+				accept="image/*"
+				onChange={onFilesSelected}
+				className="sr-only"
+			/>
+			<Button asChild variant="default" size="lg">
+				<label htmlFor={uploadInputId} className="cursor-pointer">
+					<Upload aria-hidden="true" className="mr-2 h-4 w-4" />
+					Upload Images
+				</label>
+			</Button>
+		</div>
 	);
-};
+}
 
 export default function FramePage({ frame }: Props) {
 	const router = useRouter();
+	const locale = useLocale();
 	const [isDragging, setIsDragging] = useState(false);
+	const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
+
+	// Distinct ids: both upload inputs previously used id="file-upload", so the
+	// second label pointed at the first (hidden) input and did nothing.
+	const headerUploadId = useId();
+	const emptyStateUploadId = useId();
 
 	const {
 		data: mediaFiles = [],
@@ -70,23 +119,7 @@ export default function FramePage({ frame }: Props) {
 	} = useMedia(frame.frameId);
 
 	const { mutateAsync, isPending, isError } = useUploadMedia();
-
-	const getStatusIcon = (status: string | null) => {
-		if (!status) return;
-
-		switch (status) {
-			case "online":
-				return <Wifi className="flex-shrink-0 h-5 w-5 text-lime-500" />;
-			case "offline":
-				return <WifiOff className="flex-shrink-0 h-5 w-5 text-rose-500" />;
-			case "syncing":
-				return (
-					<Monitor className="flex-shrink-0 h-5 w-5 text-sky-500 animate-pulse" />
-				);
-			default:
-				return <WifiOff className="flex-shrink-0 h-5 w-5 text-gray-400" />;
-		}
-	};
+	const deleteFrame = useDeleteFrame();
 
 	const handleDragOver = useCallback((e: React.DragEvent) => {
 		e.preventDefault();
@@ -103,18 +136,84 @@ export default function FramePage({ frame }: Props) {
 		}
 	}, []);
 
+	const handleFileUpload = async (files: File[]) => {
+		try {
+			const validFiles: File[] = [];
+			const invalidFiles: string[] = [];
+
+			files.forEach((file) => {
+				if (!file.type.startsWith("image/")) {
+					invalidFiles.push(`${file.name} (not an image)`);
+					return;
+				}
+
+				if (file.size > MAX_UPLOAD_BYTES) {
+					invalidFiles.push(
+						`${file.name} (${formatFileSize(file.size, locale)} — over the ${formatFileSize(MAX_UPLOAD_BYTES, locale)} limit)`,
+					);
+					return;
+				}
+
+				validFiles.push(file);
+			});
+
+			if (invalidFiles.length > 0) {
+				toast.error(
+					`Skipped ${invalidFiles.length} ${invalidFiles.length === 1 ? "file" : "files"}`,
+					{ description: invalidFiles.join(", ") },
+				);
+			}
+
+			if (validFiles.length === 0) return;
+
+			const results = await Promise.allSettled(
+				validFiles.map((file) =>
+					mutateAsync({ file, key: `${frame.frameId}/${file.name}` }),
+				),
+			);
+
+			const successful = results.filter(
+				(result) => result.status === "fulfilled",
+			);
+			const failed = results.filter((result) => result.status === "rejected");
+
+			if (successful.length > 0) {
+				toast.success(
+					`Uploaded ${successful.length} ${successful.length === 1 ? "image" : "images"}`,
+				);
+			}
+
+			if (failed.length > 0) {
+				toast.error(
+					`Failed to upload ${failed.length} ${failed.length === 1 ? "file" : "files"}`,
+					{
+						description: failed
+							.map((result) => result.reason?.message || "Unknown error")
+							.join(", "),
+					},
+				);
+			}
+		} catch (error) {
+			console.error("Upload failed:", error);
+			toast.error("Failed to upload files", {
+				description: "Check your connection and try again.",
+			});
+		}
+	};
+
 	const handleDrop = (e: React.DragEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
 		setIsDragging(false);
 
-		const droppedFiles = Array.from(e.dataTransfer.files);
-		const imageFiles = droppedFiles.filter((file) =>
+		const imageFiles = Array.from(e.dataTransfer.files).filter((file) =>
 			file.type.startsWith("image/"),
 		);
 
 		if (imageFiles.length === 0) {
-			console.log("No valid image files found");
+			toast.error("No images found", {
+				description: "Drop JPEG, PNG, or WebP files to upload them.",
+			});
 			return;
 		}
 
@@ -122,8 +221,7 @@ export default function FramePage({ frame }: Props) {
 	};
 
 	const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const selectedFiles = Array.from(e.target.files || []);
-		const imageFiles = selectedFiles.filter((file) =>
+		const imageFiles = Array.from(e.target.files || []).filter((file) =>
 			file.type.startsWith("image/"),
 		);
 
@@ -134,131 +232,47 @@ export default function FramePage({ frame }: Props) {
 		e.target.value = "";
 	};
 
-	const handleFileUpload = async (files: File[]) => {
+	const handleRemoveFrame = async () => {
 		try {
-			// Validate files before upload
-			const validFiles: File[] = [];
-			const invalidFiles: string[] = [];
-
-			files.forEach((file) => {
-				// Check file size (warn if over 50MB, but we'll try to resize)
-				if (file.size > 50 * 1024 * 1024) {
-					invalidFiles.push(
-						`${file.name} (${formatFileSize(file.size)} - too large)`,
-					);
-					return;
-				}
-
-				// Check if it's an image
-				if (!file.type.startsWith("image/")) {
-					invalidFiles.push(`${file.name} (not an image)`);
-					return;
-				}
-
-				validFiles.push(file);
-			});
-
-			if (invalidFiles.length > 0) {
-				toast.error(
-					`Skipped ${invalidFiles.length} invalid files: ${invalidFiles.join(", ")}`,
-				);
-			}
-
-			if (validFiles.length === 0) {
-				return;
-			}
-
-			const uploadPromises = validFiles.map((file) => {
-				const key = `${frame.frameId}/${file.name}`;
-				return mutateAsync({ file, key });
-			});
-
-			const results = await Promise.allSettled(uploadPromises);
-
-			const successful = results.filter(
-				(result) => result.status === "fulfilled",
-			);
-			const failed = results.filter((result) => result.status === "rejected");
-
-			if (successful.length > 0) {
-				toast.success(
-					`Successfully uploaded ${successful.length} ${successful.length > 1 ? "images" : "image"}`,
-				);
-			}
-
-			if (failed.length > 0) {
-				const failedReasons = failed.map(
-					(result) => result.reason?.message || "Unknown error",
-				);
-				toast.error(
-					`Failed to upload ${failed.length} ${failed.length > 1 ? "files" : "file"}: ${failedReasons.join(", ")}`,
-				);
-			}
+			await deleteFrame.mutateAsync(frame.id);
+			toast.success(`Removed ${frame.title}`);
+			router.push("/frames/list");
 		} catch (error) {
-			console.error("Upload failed:", error);
-			toast.error("Failed to upload files. Please try again.");
+			console.error("Failed to remove frame", error);
+			toast.error("Couldn't remove frame", {
+				description:
+					error instanceof Error
+						? error.message
+						: "Check your connection and try again.",
+			});
 		}
 	};
 
-	const EmptyState = () => (
-		<div className="flex flex-col items-center justify-center py-16 px-4">
-			<div className="relative mb-6">
-				<div className="w-32 h-32 bg-gradient-to-br from-blue-300 to-purple-400 rounded-2xl flex items-center justify-center relative overflow-hidden">
-					<div className="absolute inset-0 bg-gradient-to-br from-blue-700/50 to-purple-700/50"></div>
-					<div className="relative">
-						<ImageIcon className="h-12 w-12 text-blue-400 mb-2" />
-						<div className="flex gap-1 justify-center">
-							<div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-							<div className="w-2 h-2 bg-purple-300 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-							<div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce"></div>
-						</div>
-					</div>
-					<div className="absolute top-2 right-2 w-4 h-4 bg-white/30 rounded-full"></div>
-					<div className="absolute bottom-3 left-3 w-3 h-3 bg-white/20 rounded-full"></div>
-					<div className="absolute top-1/2 left-2 w-2 h-2 bg-white/25 rounded-full"></div>
-				</div>
-			</div>
-			<h3 className="text-xl font-semibold text-muted-foreground mb-2">
-				No media uploaded yet
-			</h3>
-			<p className="text-gray-500 text-center mb-6 max-w-sm">
-				Upload your first images to start displaying beautiful memories on your
-				digital frame.
-			</p>
-			<div className="flex gap-3">
-				<div className="flex items-center gap-2">
-					<input
-						type="file"
-						multiple
-						accept="image/*"
-						onChange={handleFileInputChange}
-						className="hidden"
-						id="file-upload"
-					/>
-					<Button asChild variant="default" size="lg">
-						<label htmlFor="file-upload" className="cursor-pointer">
-							<Upload className="h-4 w-4 mr-2" />
-							Upload Images
-						</label>
-					</Button>
-				</div>
-				<Button variant="outline">Browse Gallery</Button>
-			</div>
-		</div>
+	const storagePercent = Math.round(
+		(STORAGE_USED_BYTES / STORAGE_TOTAL_BYTES) * 100,
+	);
+
+	// Copy before sorting — the array is react-query's cached value, and sorting
+	// in place mutated the cache during render.
+	const sortedMedia = [...mediaFiles].sort((a, b) =>
+		a.lastmodified > b.lastmodified ? -1 : 1,
 	);
 
 	return (
 		<div
-			className="container mx-auto p-3 md:p-6 pt-0! space-y-4 md:space-y-6"
+			className="container mx-auto space-y-4 p-3 pt-0! md:space-y-6 md:p-6"
 			onDragOver={handleDragOver}
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
 		>
 			{isDragging && (
-				<div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-					<div className="bg-card border-2 border-dashed border-primary rounded-lg p-12 text-center max-w-md mx-4">
-						<Upload className="h-12 w-12 text-primary mx-auto mb-4" />
-						<h3 className="text-lg font-semibold mb-2">
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+					<div className="mx-4 max-w-md rounded-lg border-2 border-dashed border-primary bg-card p-12 text-center">
+						<Upload
+							aria-hidden="true"
+							className="mx-auto mb-4 h-12 w-12 text-primary"
+						/>
+						<h3 className="mb-2 text-lg font-semibold">
 							Drop your images here
 						</h3>
 						<p className="text-muted-foreground text-sm">
@@ -268,13 +282,11 @@ export default function FramePage({ frame }: Props) {
 				</div>
 			)}
 			<div className="flex items-center gap-4">
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={() => router.push("/frames/list")}
-				>
-					<ArrowLeft className="h-4 w-4 mr-2" />
-					Back to Frames
+				<Button variant="ghost" size="sm" asChild>
+					<Link href="/frames/list">
+						<ArrowLeft aria-hidden="true" className="mr-2 h-4 w-4" />
+						Back to Frames
+					</Link>
 				</Button>
 			</div>
 
@@ -284,39 +296,48 @@ export default function FramePage({ frame }: Props) {
 						<CardContent>
 							<div className="flex items-start justify-between">
 								<div className="space-y-2">
-									<div className="flex items-center flex-wrap gap-3 pr-4">
+									<div className="flex flex-wrap items-center gap-3 pr-4">
 										<h1 className="text-3xl font-bold">{frame.title}</h1>
-										{getStatusIcon(frame.status)}
-										{getStatusBadge(frame.status)}
+										<FrameStatusIcon status={frame.status} />
+										<FrameStatusBadge status={frame.status} />
 									</div>
-									<div className="flex flex-col md:flex-row items-start md:items-center gap-1 md:gap-4 text-muted-foreground">
+									<div className="flex flex-col items-start gap-1 text-muted-foreground md:flex-row md:items-center md:gap-4">
 										<span className="flex items-center gap-2">
-											<Monitor className="size-4" />
-											{frame.model}
+											<Monitor aria-hidden="true" className="size-4" />
+											{frame.model || "Unknown model"}
 										</span>
 										<span className="flex items-center gap-2">
-											<MapPin className="size-4" />
-											{frame.location}
+											<MapPin aria-hidden="true" className="size-4" />
+											{frame.location || "No location"}
 										</span>
 									</div>
 								</div>
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
-										<Button variant="outline">
-											<MoreHorizontal className="h-4 w-4" />
+										<Button
+											variant="outline"
+											aria-label={`Actions for ${frame.title}`}
+										>
+											<MoreHorizontal aria-hidden="true" className="h-4 w-4" />
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
-										<DropdownMenuItem
-											title="Coming Soon"
-											className="hover:cursor-not-allowed"
-										>
-											<RotateCcw className="h-4 w-4 mr-2" />
+										<DropdownMenuItem disabled>
+											<RotateCcw aria-hidden="true" className="mr-2 h-4 w-4" />
 											Restart Frame
+											<span className="text-muted-foreground ml-auto text-xs">
+												Soon
+											</span>
 										</DropdownMenuItem>
 										<DropdownMenuSeparator />
-										<DropdownMenuItem className="text-red-600">
-											<Trash2 className="h-4 w-4 mr-2" />
+										<DropdownMenuItem
+											variant="destructive"
+											onSelect={(event) => {
+												event.preventDefault();
+												setConfirmRemoveOpen(true);
+											}}
+										>
+											<Trash2 aria-hidden="true" className="mr-2 h-4 w-4" />
 											Remove Frame
 										</DropdownMenuItem>
 									</DropdownMenuContent>
@@ -326,7 +347,7 @@ export default function FramePage({ frame }: Props) {
 					</Card>
 				</div>
 
-				<div className="">
+				<div>
 					<Card className="gap-2 md:gap-4">
 						<CardHeader>
 							<CardTitle className="text-lg">System Status</CardTitle>
@@ -337,33 +358,32 @@ export default function FramePage({ frame }: Props) {
 									<span className="text-sm text-muted-foreground">
 										Last Sync
 									</span>
-									<span
-										className="text-sm font-medium"
-										suppressHydrationWarning={true}
-									>
-										{/* {frame.lastSync} */}
-										{format(subMinutes(new Date(), 10), "PPpp").toString()}
+									<span className="text-sm font-medium tabular-nums">
+										{frame.lastSync
+											? formatDateTime(frame.lastSync, locale)
+											: "Never"}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Uptime</span>
-									<span
-										className="text-sm font-medium"
-										title={format(new Date("2025-07-27T16:32:12"), "PPpp")}
-									>
-										{/* {frame.uptime} */}
-										{getRelativeTime(new Date("2025-07-27T16:32:12"))}
+									{/* No uptime field on `Frame` yet — placeholder rather than a
+									    fabricated value. */}
+									<span className="text-sm font-medium text-muted-foreground">
+										Not reported
 									</span>
 								</div>
 							</div>
 							<div className="space-y-2">
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Storage</span>
-									<span className="text-sm font-medium">1.5GB / 32GB</span>
+									<span className="text-sm font-medium tabular-nums">
+										{formatFileSize(STORAGE_USED_BYTES, locale)} /{" "}
+										{formatFileSize(STORAGE_TOTAL_BYTES, locale)}
+									</span>
 								</div>
 								<Progress
-									// value={(frame.storageUsed / frame.storageTotal) * 100}
-									value={4.6}
+									value={storagePercent}
+									aria-label={`Storage used: ${storagePercent}%`}
 									className="h-2"
 								/>
 							</div>
@@ -374,73 +394,90 @@ export default function FramePage({ frame }: Props) {
 
 			<Separator />
 
-			<div className="space-y-4 md:space-y-6 px-4">
+			<div className="space-y-4 px-4 md:space-y-6">
 				<div className="flex items-start justify-between">
 					<h2 className="text-2xl font-bold">Media</h2>
 					<div className="flex flex-col gap-2">
 						<div className="flex gap-2">
-							<Badge variant="secondary" className="text-sm">
-								{mediaFiles.length} {mediaFiles.length === 1 ? "file" : "files"}
+							<Badge variant="secondary" className="text-sm tabular-nums">
+								{mediaFiles.length}{" "}
+								{mediaFiles.length === 1 ? "file" : "files"}
 							</Badge>
-							<div className="flex items-center gap-2">
-								<input
-									type="file"
-									multiple
-									accept="image/*"
-									onChange={handleFileInputChange}
-									className="hidden"
-									id="file-upload"
-								/>
-								<Button asChild variant="default" size="lg">
-									<label htmlFor="file-upload" className="cursor-pointer">
-										<Upload className="h-4 w-4 mr-2" />
-										Upload Images
-									</label>
-								</Button>
-							</div>
+							<input
+								id={headerUploadId}
+								type="file"
+								multiple
+								accept="image/*"
+								onChange={handleFileInputChange}
+								className="sr-only"
+							/>
+							<Button asChild variant="default" size="lg">
+								<label htmlFor={headerUploadId} className="cursor-pointer">
+									<Upload aria-hidden="true" className="mr-2 h-4 w-4" />
+									Upload Images
+								</label>
+							</Button>
 						</div>
-						{isPending && (
-							<div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
-								<div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-								Uploading...
-							</div>
-						)}
-						{isError && (
-							<div className="flex items-center justify-end gap-2 text-sm text-rose-400">
-								<FileWarning className="size-4" />
-								Upload error
-							</div>
-						)}
+						<div aria-live="polite" className="min-h-0">
+							{isPending && (
+								<div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
+									<div
+										aria-hidden="true"
+										className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+									/>
+									Uploading…
+								</div>
+							)}
+							{isError && (
+								<div className="flex items-center justify-end gap-2 text-sm text-destructive">
+									<FileWarning aria-hidden="true" className="size-4" />
+									Upload failed — try again
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 
 				{isLoadingMedia ? (
-					<div className="text-center py-12">
-						<div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-						<p className="text-muted-foreground">Loading media files...</p>
+					<div role="status" aria-live="polite" className="py-12 text-center">
+						<div
+							aria-hidden="true"
+							className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
+						/>
+						<p className="text-muted-foreground">Loading media files…</p>
 					</div>
 				) : mediaError ? (
-					<div className="text-center py-12">
-						<p className="text-red-500 mb-2">Error loading media files</p>
+					<div role="alert" className="py-12 text-center">
+						<p className="mb-2 text-destructive">
+							Couldn&rsquo;t load media files
+						</p>
 						<p className="text-muted-foreground text-sm">
 							{mediaError.message}
 						</p>
 					</div>
-				) : mediaFiles.length > 0 ? (
+				) : sortedMedia.length > 0 ? (
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{mediaFiles
-							.sort((a, b) => {
-								if (a.lastmodified > b.lastmodified) return -1;
-								return 1;
-							})
-							.map((item) => (
-								<ImageCard key={item.key} item={item} />
-							))}
+						{sortedMedia.map((item) => (
+							<ImageCard key={item.key} item={item} />
+						))}
 					</div>
 				) : (
-					<EmptyState />
+					<EmptyState
+						uploadInputId={emptyStateUploadId}
+						onFilesSelected={handleFileInputChange}
+					/>
 				)}
 			</div>
+
+			<ConfirmDialog
+				open={confirmRemoveOpen}
+				onOpenChange={setConfirmRemoveOpen}
+				title={`Remove ${frame.title}?`}
+				description="This removes the frame from your account and returns you to the frames list. Images already uploaded to it are not deleted."
+				confirmLabel="Remove Frame"
+				pending={deleteFrame.isPending}
+				onConfirm={handleRemoveFrame}
+			/>
 		</div>
 	);
 }

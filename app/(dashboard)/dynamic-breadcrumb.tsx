@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { usePathname } from "next/navigation";
 import {
 	Breadcrumb,
@@ -10,6 +11,15 @@ import {
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useFrame } from "@/app/lib/queries/frames";
+import Link from "next/link";
+
+/** "frames-list" → "Frames List" */
+const toTitleCase = (segment: string) =>
+	segment
+		.split(/[-_]/)
+		.filter(Boolean)
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
 
 export function DynamicBreadcrumb() {
 	const pathname = usePathname();
@@ -18,14 +28,15 @@ export function DynamicBreadcrumb() {
 		.split("/")
 		.filter((segment) => segment !== "" && segment !== "dashboard");
 
-	const capitalize = (str: string) =>
-		str.charAt(0).toUpperCase() + str.slice(1);
-
 	const isFrameRoute = pathSegments[0]?.toLowerCase() === "frame";
-	const frameId =
-		isFrameRoute && pathSegments[1] ? parseInt(pathSegments[1], 10) : null;
+	const parsedFrameId =
+		isFrameRoute && pathSegments[1]
+			? Number.parseInt(pathSegments[1], 10)
+			: Number.NaN;
+	const frameId = Number.isNaN(parsedFrameId) ? null : parsedFrameId;
 
-	const { data: frame } = useFrame(frameId || 0);
+	// `useFrame` is internally `enabled: !!id`, so 0 is a no-op off frame routes.
+	const { data: frame } = useFrame(frameId ?? 0);
 
 	if (pathSegments.length === 0) {
 		return (
@@ -40,15 +51,11 @@ export function DynamicBreadcrumb() {
 	}
 
 	const getSegmentDisplayName = (segment: string, index: number) => {
-		if (index === 1 && isFrameRoute && frameId) {
-			if (frame) {
-				return frame.title;
-			}
-
-			return `Frame ${frameId}`;
+		if (index === 1 && isFrameRoute && frameId !== null) {
+			return frame?.title ?? `Frame ${frameId}`;
 		}
 
-		return capitalize(segment);
+		return toTitleCase(segment);
 	};
 
 	return (
@@ -60,18 +67,20 @@ export function DynamicBreadcrumb() {
 					const displayName = getSegmentDisplayName(segment, index);
 
 					return (
-						<div key={`${segment}-${index}`} className="flex items-center">
-							<BreadcrumbItem className={index === 0 ? "hidden md:block" : ""}>
+						// A Fragment rather than a <div>: BreadcrumbList renders an <ol>,
+						// which may only contain <li> children.
+						<Fragment key={href}>
+							<BreadcrumbItem>
 								{isLast ? (
 									<BreadcrumbPage>{displayName}</BreadcrumbPage>
 								) : (
-									<BreadcrumbLink href={href}>{displayName}</BreadcrumbLink>
+									<BreadcrumbLink asChild>
+										<Link href={href}>{displayName}</Link>
+									</BreadcrumbLink>
 								)}
 							</BreadcrumbItem>
-							{!isLast && (
-								<BreadcrumbSeparator className="ml-2 hidden md:block" />
-							)}
-						</div>
+							{!isLast && <BreadcrumbSeparator />}
+						</Fragment>
 					);
 				})}
 			</BreadcrumbList>

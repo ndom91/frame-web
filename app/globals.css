@@ -119,6 +119,60 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Keeps native UI (scrollbars, <select> popups, date pickers, form controls)
+     in step with the app theme. next-themes toggles the .dark class. */
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Removes the ~300ms double-tap-to-zoom delay and the default blue flash on
+     tap, without disabling pinch zoom. */
+  a,
+  button,
+  label,
+  summary,
+  [role="button"],
+  [role="menuitem"],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Anchored headings shouldn't land flush under the sticky header. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    scroll-margin-top: 5rem;
+  }
+
+  /* Scrolling to the end of a dialog/sheet/menu shouldn't chain to the page. */
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"] {
+    overscroll-behavior: contain;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   :root {
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
