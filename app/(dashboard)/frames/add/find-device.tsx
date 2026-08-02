@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
 	type WiFiCredentials,
 	type FrameConfig,
 	type SetupCommand,
@@ -13,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { useRef, useState } from "react";
 import { wait } from "@/lib/utils";
+import { useBluetoothAvailability } from "@/app/lib/use-bluetooth-availability";
 
 export class PhotoFrameSetupClient implements PhotoFrameSetup {
 	private device: BluetoothDevice | null = null;
@@ -60,32 +69,21 @@ async function setupPhotoFrame(
 ): Promise<void> {
 	const client = new PhotoFrameSetupClient();
 
-	// 1. Connect to frame
 	await client.connect();
 	toast.success("Connected to frame");
 
-	// 2. Send WiFi credentials
 	await client.setWiFiCredentials(wifiCredentials);
 	toast.info("WiFi credentials sent");
-
-	// 3. Wait a moment for processing
 	await wait(1000);
 
-	// 4. Send frame configuration
 	await client.setFrameConfig(frameConfig);
 	toast.info("Frame configuration sent");
-
-	// 5. Wait a moment for processing
 	await wait(1000);
 
-	// 6. Optional: Test WiFi before completing
 	await client.sendCommand("test_wifi");
 	toast.info("WiFi test initiated");
-
-	// 7. Wait for test completion
 	await wait(3000);
 
-	// 8. Complete setup
 	await client.sendCommand("complete_setup");
 
 	// TODO: Write Frame to DB
@@ -95,7 +93,32 @@ async function setupPhotoFrame(
 type FieldName = "name" | "ssid" | "password";
 type FieldErrors = Partial<Record<FieldName, string>>;
 
+function Notice({
+	tone = "muted",
+	role = "status",
+	children,
+}: {
+	tone?: "muted" | "destructive";
+	role?: "status" | "alert";
+	children: React.ReactNode;
+}) {
+	return (
+		<div
+			role={role}
+			className={
+				tone === "destructive"
+					? "rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm"
+					: "rounded-lg border bg-muted/40 p-3 text-sm"
+			}
+		>
+			{children}
+		</div>
+	);
+}
+
 export function FindDevice() {
+	const { availability, recheck } = useBluetoothAvailability();
+
 	const [name, setName] = useState("");
 	const [ssid, setSsid] = useState("");
 	const [password, setPassword] = useState("");
@@ -107,6 +130,13 @@ export function FindDevice() {
 		ssid: useRef<HTMLInputElement>(null),
 		password: useRef<HTMLInputElement>(null),
 	};
+
+	// These must be NEXT_PUBLIC_ to exist in the browser. If they're missing the
+	// frame would be provisioned with "https://undefined.../undefined" as its
+	// bucket, so block setup rather than brick a device.
+	const r2AccountId = process.env.NEXT_PUBLIC_R2_ACCOUNT_ID;
+	const r2Bucket = process.env.NEXT_PUBLIC_R2_BUCKET;
+	const isConfigured = Boolean(r2AccountId && r2Bucket);
 
 	const validate = (): FieldErrors => {
 		const nextErrors: FieldErrors = {};
@@ -122,7 +152,6 @@ export function FindDevice() {
 		const nextErrors = validate();
 		setErrors(nextErrors);
 
-		// Move focus to the first problem so the error isn't only visual.
 		const firstInvalid = (["name", "ssid", "password"] as const).find(
 			(field) => nextErrors[field],
 		);
@@ -136,7 +165,7 @@ export function FindDevice() {
 			await setupPhotoFrame(
 				{
 					name: name.trim(),
-					s3_bucket: `https://${process.env.NEXT_PUBLIC_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.NEXT_PUBLIC_R2_BUCKET}`,
+					s3_bucket: `https://${r2AccountId}.r2.cloudflarestorage.com/${r2Bucket}`,
 				},
 				{ ssid: ssid.trim(), password },
 			);
@@ -148,8 +177,8 @@ export function FindDevice() {
 			toast.error("Setup failed", {
 				description:
 					error instanceof Error
-						? `${error.message} Move closer to the frame and try again.`
-						: "Move closer to the frame and try again.",
+						? `${error.message} Check the frame is powered on and nearby, then try again.`
+						: "Check the frame is powered on and nearby, then try again.",
 			});
 		} finally {
 			setIsSubmitting(false);
@@ -159,82 +188,150 @@ export function FindDevice() {
 	const describedBy = (field: FieldName) =>
 		errors[field] ? `${field}-error` : undefined;
 
+	const canSubmit =
+		availability === "available" && isConfigured && !isSubmitting;
+
 	return (
-		<form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
-			<div className="grid gap-2">
-				<Label htmlFor="frame-name">Frame Name</Label>
-				<Input
-					ref={fieldRefs.name}
-					data-1p-ignore
-					id="frame-name"
-					name="frameName"
-					type="text"
-					autoComplete="off"
-					spellCheck={false}
-					placeholder="Living room frame…"
-					value={name}
-					aria-invalid={Boolean(errors.name)}
-					aria-describedby={describedBy("name")}
-					onChange={(e) => setName(e.target.value)}
-				/>
-				{errors.name && (
-					<p id="name-error" className="text-sm text-destructive">
-						{errors.name}
-					</p>
+		<Card className="h-fit">
+			<CardHeader>
+				<CardTitle>Frame details</CardTitle>
+				<CardDescription>
+					Your WiFi details are sent straight to the frame over Bluetooth.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{availability === "checking" && (
+					<div className="space-y-4" role="status" aria-label="Checking for Bluetooth…">
+						<Skeleton className="h-9 w-full" />
+						<Skeleton className="h-9 w-full" />
+						<Skeleton className="h-9 w-full" />
+					</div>
 				)}
-			</div>
 
-			<div className="grid gap-2">
-				<Label htmlFor="wifi-ssid">WiFi Network</Label>
-				<Input
-					ref={fieldRefs.ssid}
-					data-1p-ignore
-					id="wifi-ssid"
-					name="wifiSsid"
-					type="text"
-					autoComplete="off"
-					spellCheck={false}
-					placeholder="MyHomeNetwork…"
-					value={ssid}
-					aria-invalid={Boolean(errors.ssid)}
-					aria-describedby={describedBy("ssid")}
-					onChange={(e) => setSsid(e.target.value)}
-				/>
-				{errors.ssid && (
-					<p id="ssid-error" className="text-sm text-destructive">
-						{errors.ssid}
-					</p>
+				{availability === "unsupported" && (
+					<Notice tone="destructive" role="alert">
+						<p className="font-medium">This browser can&rsquo;t set up a frame</p>
+						<p className="mt-1 text-muted-foreground">
+							Setup needs Web Bluetooth, which Safari and Firefox don&rsquo;t
+							support &mdash; including every browser on iPhone and iPad. Open
+							this page in Chrome, Edge, Opera, or Samsung Internet to continue.
+						</p>
+					</Notice>
 				)}
-			</div>
 
-			<div className="grid gap-2">
-				<Label htmlFor="wifi-password">WiFi Password</Label>
-				<Input
-					ref={fieldRefs.password}
-					data-1p-ignore
-					id="wifi-password"
-					name="wifiPassword"
-					type="password"
-					autoComplete="off"
-					spellCheck={false}
-					value={password}
-					aria-invalid={Boolean(errors.password)}
-					aria-describedby={describedBy("password")}
-					onChange={(e) => setPassword(e.target.value)}
-				/>
-				{errors.password && (
-					<p id="password-error" className="text-sm text-destructive">
-						{errors.password}
-					</p>
+				{(availability === "available" || availability === "unavailable") && (
+					<div className="space-y-4">
+						{availability === "unavailable" && (
+							<Notice>
+								<p className="font-medium">Bluetooth is turned off</p>
+								<p className="mt-1 text-muted-foreground">
+									Turn Bluetooth on in your system settings to pair with the
+									frame.
+								</p>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									className="mt-2"
+									onClick={() => void recheck()}
+								>
+									Check Again
+								</Button>
+							</Notice>
+						)}
+
+						{!isConfigured && (
+							<Notice tone="destructive" role="alert">
+								<p className="font-medium">Storage isn&rsquo;t configured</p>
+								<p className="mt-1 text-muted-foreground">
+									NEXT_PUBLIC_R2_ACCOUNT_ID and NEXT_PUBLIC_R2_BUCKET are
+									missing, so the frame can&rsquo;t be told where to fetch
+									photos from. Setup is disabled until they&rsquo;re set.
+								</p>
+							</Notice>
+						)}
+
+						<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+							<div className="grid gap-2">
+								<Label htmlFor="frame-name">Frame Name</Label>
+								<Input
+									ref={fieldRefs.name}
+									data-1p-ignore
+									id="frame-name"
+									name="frameName"
+									type="text"
+									autoComplete="off"
+									spellCheck={false}
+									placeholder="Living room frame…"
+									value={name}
+									aria-invalid={Boolean(errors.name)}
+									aria-describedby={describedBy("name")}
+									onChange={(e) => setName(e.target.value)}
+								/>
+								{errors.name && (
+									<p id="name-error" className="text-sm text-destructive">
+										{errors.name}
+									</p>
+								)}
+							</div>
+
+							<div className="grid gap-2">
+								<Label htmlFor="wifi-ssid">WiFi Network</Label>
+								<Input
+									ref={fieldRefs.ssid}
+									data-1p-ignore
+									id="wifi-ssid"
+									name="wifiSsid"
+									type="text"
+									autoComplete="off"
+									spellCheck={false}
+									placeholder="MyHomeNetwork…"
+									value={ssid}
+									aria-invalid={Boolean(errors.ssid)}
+									aria-describedby={describedBy("ssid")}
+									onChange={(e) => setSsid(e.target.value)}
+								/>
+								{errors.ssid && (
+									<p id="ssid-error" className="text-sm text-destructive">
+										{errors.ssid}
+									</p>
+								)}
+							</div>
+
+							<div className="grid gap-2">
+								<Label htmlFor="wifi-password">WiFi Password</Label>
+								<Input
+									ref={fieldRefs.password}
+									data-1p-ignore
+									id="wifi-password"
+									name="wifiPassword"
+									type="password"
+									autoComplete="off"
+									spellCheck={false}
+									value={password}
+									aria-invalid={Boolean(errors.password)}
+									aria-describedby={describedBy("password")}
+									onChange={(e) => setPassword(e.target.value)}
+								/>
+								{errors.password && (
+									<p id="password-error" className="text-sm text-destructive">
+										{errors.password}
+									</p>
+								)}
+							</div>
+
+							<Button type="submit" disabled={!canSubmit}>
+								{isSubmitting ? "Setting up frame…" : "Start Device Setup"}
+							</Button>
+							<p aria-live="polite" className="sr-only">
+								{isSubmitting
+									? "Setting up frame, this takes a few seconds."
+									: ""}
+							</p>
+						</form>
+					</div>
 				)}
-			</div>
-
-			<Button type="submit" disabled={isSubmitting}>
-				{isSubmitting ? "Setting up frame…" : "Start Device Setup"}
-			</Button>
-			<p aria-live="polite" className="sr-only">
-				{isSubmitting ? "Setting up frame, this takes a few seconds." : ""}
-			</p>
-		</form>
+			</CardContent>
+		</Card>
 	);
 }
