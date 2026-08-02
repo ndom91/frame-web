@@ -31,6 +31,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { FrameStatusBadge, FrameStatusIcon } from "@/components/frame-status";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { VirtualizedMasonryGrid } from "@/components/virtualized-masonry-grid";
 import type { Frame } from "@/lib/types";
 import { formatDateTime, formatFileSize } from "@/lib/utils";
 import { useLocale } from "@/app/lib/use-locale";
@@ -456,11 +457,11 @@ export default function FramePage({ frame }: Props) {
 						</p>
 					</div>
 				) : sortedMedia.length > 0 ? (
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{sortedMedia.map((item) => (
-							<ImageCard key={item.key} item={item} />
-						))}
-					</div>
+					<VirtualizedMasonryGrid
+						items={sortedMedia}
+						getKey={(item) => item.key}
+						renderItem={(item) => <ImageCard item={item} />}
+					/>
 				) : (
 					<EmptyState
 						uploadInputId={emptyStateUploadId}

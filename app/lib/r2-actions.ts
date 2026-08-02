@@ -74,22 +74,36 @@ export async function getSignedUrlForDownload(key: string): Promise<string> {
 }
 
 export async function listFiles(prefix: string = ""): Promise<FileObject[]> {
-	const command = new ListObjectsV2Command({
-		Bucket: R2_BUCKET,
-		Prefix: prefix,
-	});
-
 	try {
-		const response = await r2Client.send(command);
-		return (
-			response.Contents?.map((image) => {
-				return {
+		const files: FileObject[] = [];
+		let continuationToken: string | undefined;
+
+		// R2 caps a ListObjectsV2 response at 1000 keys. Without following
+		// NextContinuationToken, a frame with more images silently rendered only
+		// the first 1000 with no error anywhere.
+		do {
+			const response = await r2Client.send(
+				new ListObjectsV2Command({
+					Bucket: R2_BUCKET,
+					Prefix: prefix,
+					ContinuationToken: continuationToken,
+				}),
+			);
+
+			for (const image of response.Contents ?? []) {
+				files.push({
 					...camelCaseKeys(image),
 					name: image.Key?.split("/").pop() ?? "",
 					url: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${image.Key}`,
-				} as FileObject;
-			}) || []
-		);
+				} as FileObject);
+			}
+
+			continuationToken = response.IsTruncated
+				? response.NextContinuationToken
+				: undefined;
+		} while (continuationToken);
+
+		return files;
 	} catch (error) {
 		console.error("Error listing files:", error);
 		throw error;
