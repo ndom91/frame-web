@@ -201,7 +201,11 @@ export function FindDevice() {
 			</CardHeader>
 			<CardContent>
 				{availability === "checking" && (
-					<div className="space-y-4" role="status" aria-label="Checking for Bluetooth…">
+					<div
+						className="space-y-4"
+						role="status"
+						aria-label="Checking for Bluetooth…"
+					>
 						<Skeleton className="h-9 w-full" />
 						<Skeleton className="h-9 w-full" />
 						<Skeleton className="h-9 w-full" />
@@ -210,7 +214,9 @@ export function FindDevice() {
 
 				{availability === "unsupported" && (
 					<Notice tone="destructive" role="alert">
-						<p className="font-medium">This browser can&rsquo;t set up a frame</p>
+						<p className="font-medium">
+							This browser can&rsquo;t set up a frame
+						</p>
 						<p className="mt-1 text-muted-foreground">
 							Setup needs Web Bluetooth, which Safari and Firefox don&rsquo;t
 							support &mdash; including every browser on iPhone and iPad. Open
@@ -262,7 +268,7 @@ export function FindDevice() {
 									type="text"
 									autoComplete="off"
 									spellCheck={false}
-									placeholder="Living room frame…"
+									placeholder=""
 									value={name}
 									aria-invalid={Boolean(errors.name)}
 									aria-describedby={describedBy("name")}
@@ -285,7 +291,7 @@ export function FindDevice() {
 									type="text"
 									autoComplete="off"
 									spellCheck={false}
-									placeholder="MyHomeNetwork…"
+									placeholder=""
 									value={ssid}
 									aria-invalid={Boolean(errors.ssid)}
 									aria-describedby={describedBy("ssid")}
