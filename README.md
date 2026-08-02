@@ -1,6 +1,8 @@
 # Frame-Web
 
-Web admin portal for the self-hosted [Domino Frame]().
+Web admin portal for the self-hosted **Domino Frame**.
+
+Designed to manage picture frames running the [client](https://github.com/ndom91/frame-go) software.
 
 ## 🚀 Getting Started
 
