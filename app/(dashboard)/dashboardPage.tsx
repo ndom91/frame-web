@@ -1,11 +1,11 @@
 "use client";
 
 import { useFrames } from "@/app/lib/queries/frames";
+import { useFramesOverview } from "@/app/lib/queries/media";
 import Frame from "./frames/list/frameCard";
 import SkeletonCard from "@/components/card-skeleton";
 import { FrameCornersIcon } from "@phosphor-icons/react/dist/ssr/FrameCorners";
 import { ImageIcon } from "@phosphor-icons/react/dist/ssr/Image";
-import { useQueries } from "@tanstack/react-query";
 import { useLocale } from "@/app/lib/use-locale";
 
 function StatTile({
@@ -40,27 +40,18 @@ export default function DashboardPage() {
 		error: framesError,
 	} = useFrames();
 
-	const mediaQueries = useQueries({
-		queries: frames.map((frame) => ({
-			queryKey: ["media", frame.frameId],
-			queryFn: async () => {
-				const url = new URL("/api/media", window.location.origin);
-				if (frame.frameId) {
-					url.searchParams.set("prefix", frame.frameId);
-				}
+	// One request for every frame's count and preview, instead of fetching each
+	// frame's full media listing just to call .length on it.
+	const { data: overview = [] } = useFramesOverview();
 
-				const response = await fetch(url.toString());
-				if (!response.ok) {
-					throw new Error("Failed to fetch media files");
-				}
-				return response.json();
-			},
-		})),
-	});
+	const totalMediaCount = overview.reduce(
+		(total, entry) => total + entry.mediaCount,
+		0,
+	);
 
-	const totalMediaCount = mediaQueries.reduce((total, query) => {
-		return total + (query.data?.length || 0);
-	}, 0);
+	const previewByFrameId = new Map(
+		overview.map((entry) => [entry.id, entry.previewUrl]),
+	);
 
 	const formatCount = (count: number) =>
 		new Intl.NumberFormat(locale).format(count);
@@ -90,7 +81,13 @@ export default function DashboardPage() {
 
 					{!framesLoading &&
 						!framesError &&
-						frames.map((frame) => <Frame key={frame.id} frame={frame} />)}
+						frames.map((frame) => (
+							<Frame
+								key={frame.id}
+								frame={frame}
+								previewUrl={previewByFrameId.get(frame.id) ?? null}
+							/>
+						))}
 				</div>
 
 				{!framesLoading && framesError && (

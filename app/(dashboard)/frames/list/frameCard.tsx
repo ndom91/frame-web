@@ -33,6 +33,12 @@ interface Props {
 	frame: Frame;
 	selectedFrames?: number[];
 	setSelectedFrames?: Dispatch<SetStateAction<number[]>>;
+	/**
+	 * Preview image supplied by the caller (the dashboard gets it from
+	 * /api/frames/overview). When present the card skips its own media fetch,
+	 * which is what the per-frame request fan-out was really paying for.
+	 */
+	previewUrl?: string | null;
 }
 
 const PLACEHOLDER_IMAGE = "https://unsplash.it/300/200";
@@ -41,11 +47,14 @@ export default function Frame({
 	frame,
 	selectedFrames,
 	setSelectedFrames,
+	previewUrl,
 }: Props) {
 	const router = useRouter();
 	const locale = useLocale();
 	const checkboxId = useId();
-	const { data: mediaFiles = [] } = useMedia(frame.frameId);
+	const { data: mediaFiles = [] } = useMedia(frame.frameId, {
+		enabled: previewUrl === undefined,
+	});
 	const deleteFrame = useDeleteFrame();
 	const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
 
@@ -73,12 +82,14 @@ export default function Frame({
 		}
 	};
 
+	// Prefer a caller-supplied preview; otherwise pick from the card's own fetch.
 	// Deterministic rather than random: Math.random() during render picked a
 	// different image on the server than on the client, which desynced hydration.
 	const previewImage =
-		mediaFiles.length > 0
+		previewUrl ??
+		(mediaFiles.length > 0
 			? mediaFiles[frame.id % mediaFiles.length]?.url
-			: undefined;
+			: undefined);
 
 	return (
 		<Card className="gap-0 overflow-hidden py-4">

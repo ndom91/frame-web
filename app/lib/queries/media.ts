@@ -27,9 +27,38 @@ export type UploadWithPresignedUrlData = {
 	key: string;
 };
 
-export function useMedia(prefix: string = "") {
+export type FrameOverview = {
+	id: number;
+	frameId: string;
+	title: string;
+	mediaCount: number;
+	previewUrl: string | null;
+};
+
+/**
+ * Photo counts and preview images for every frame in one request.
+ *
+ * Replaces fetching the full media listing per frame just to count it.
+ */
+export function useFramesOverview() {
+	return useQuery({
+		queryKey: ["frames", "overview"],
+		queryFn: async (): Promise<FrameOverview[]> => {
+			const response = await fetch("/api/frames/overview");
+			if (!response.ok) {
+				throw new Error("Failed to fetch frames overview");
+			}
+			return response.json();
+		},
+	});
+}
+
+export function useMedia(prefix: string = "", options?: { enabled?: boolean }) {
 	return useQuery({
 		queryKey: ["media", prefix],
+		// Callers that already have a preview image from the overview endpoint
+		// opt out, rather than pulling a whole listing they won't use.
+		enabled: options?.enabled ?? true,
 		queryFn: async (): Promise<MediaFile[]> => {
 			const url = new URL("/api/media", window.location.origin);
 			if (prefix) {
