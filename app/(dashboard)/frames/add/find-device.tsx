@@ -131,13 +131,6 @@ export function FindDevice() {
 		password: useRef<HTMLInputElement>(null),
 	};
 
-	// These must be NEXT_PUBLIC_ to exist in the browser. If they're missing the
-	// frame would be provisioned with "https://undefined.../undefined" as its
-	// bucket, so block setup rather than brick a device.
-	const r2AccountId = process.env.NEXT_PUBLIC_R2_ACCOUNT_ID;
-	const r2Bucket = process.env.NEXT_PUBLIC_R2_BUCKET;
-	const isConfigured = Boolean(r2AccountId && r2Bucket);
-
 	const validate = (): FieldErrors => {
 		const nextErrors: FieldErrors = {};
 		if (!name.trim()) nextErrors.name = "Give the frame a name.";
@@ -165,7 +158,12 @@ export function FindDevice() {
 			await setupPhotoFrame(
 				{
 					name: name.trim(),
-					s3_bucket: `https://${r2AccountId}.r2.cloudflarestorage.com/${r2Bucket}`,
+					// The firmware ignores this: it builds its own R2 client from
+					// CF_ACCOUNT_ID / R2_BUCKET_NAME / R2_ACCESS_KEY and only echoes
+					// s3_bucket back in a status response (frame-go ble.go:445). Sent
+					// as the public image host so it's at least a URL something could
+					// fetch unauthenticated, should the device ever start using it.
+					s3_bucket: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}`,
 				},
 				{ ssid: ssid.trim(), password },
 			);
@@ -189,7 +187,7 @@ export function FindDevice() {
 		errors[field] ? `${field}-error` : undefined;
 
 	const canSubmit =
-		availability === "available" && isConfigured && !isSubmitting;
+		availability === "available" && !isSubmitting;
 
 	return (
 		<Card className="h-fit">
@@ -243,17 +241,6 @@ export function FindDevice() {
 								>
 									Check Again
 								</Button>
-							</Notice>
-						)}
-
-						{!isConfigured && (
-							<Notice tone="destructive" role="alert">
-								<p className="font-medium">Storage isn&rsquo;t configured</p>
-								<p className="mt-1 text-muted-foreground">
-									NEXT_PUBLIC_R2_ACCOUNT_ID and NEXT_PUBLIC_R2_BUCKET are
-									missing, so the frame can&rsquo;t be told where to fetch
-									photos from. Setup is disabled until they&rsquo;re set.
-								</p>
 							</Notice>
 						)}
 
