@@ -8,6 +8,9 @@ import { media } from "@/db/media.sql";
 import { user } from "@/db/user.sql";
 import { frame } from "@/db/frame.sql";
 import { usersToFrames } from "@/db/frameOnUser.sql";
+import { attachImageCookie } from "@/app/lib/image-cookie";
+import { getAccessibleFrameIds } from "@/app/lib/frame-access";
+import { imageUrl } from "@/app/lib/image-url";
 import { and, eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
@@ -55,12 +58,21 @@ export async function GET(request: NextRequest) {
 			mediaRecords.map((record) => [record.url, record.uploadedBy ?? undefined]),
 		);
 
-		return NextResponse.json(
+		const response = NextResponse.json(
 			files.map((file) => ({
 				...file,
 				uploadedBy: uploadedByUrl.get(file.url),
 			})),
 		);
+		// Every frame, not just this one: the cookie is replaced on each request,
+		// so scoping it to `prefix` would revoke images already on screen from a
+		// previously viewed frame.
+		await attachImageCookie(
+			response,
+			request,
+			await getAccessibleFrameIds(session.user.id),
+		);
+		return response;
 	} catch (error) {
 		console.error("Error fetching media files:", error);
 		return NextResponse.json(
@@ -106,7 +118,7 @@ export async function POST(request: NextRequest) {
 		if (!membership || membership.role === "READ") {
 			return NextResponse.json({ error: "Restricted" }, { status: 403 });
 		}
-		const fileUrl = `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${key}`;
+		const fileUrl = imageUrl(key);
 		const existingMedia = await db.query.media.findFirst({
 			where: eq(media.url, fileUrl),
 		});

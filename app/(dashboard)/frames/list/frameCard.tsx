@@ -26,7 +26,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { Frame } from "@/lib/types";
 import { useMedia } from "@/app/lib/queries/media";
 import { useDeleteFrame } from "@/app/lib/queries/frames";
-import { formatDate } from "@/lib/utils";
+import { formatDate, sizedImageUrl } from "@/lib/utils";
 import { useLocale } from "@/app/lib/use-locale";
 
 interface Props {
@@ -157,10 +157,15 @@ export default function Frame({
 			</CardHeader>
 			<CardContent className="flex h-full flex-col space-y-3 px-4">
 				<div className="relative flex-1 overflow-hidden rounded-lg bg-muted">
+					{/* `unoptimized` is required, not a preference: Next's optimizer
+					    fetches the source server-side with no user cookie, and the
+					    images Worker would answer it with a 403. Resizing happens at
+					    the Worker instead, via the ?w= parameter. */}
 					<Image
-						src={previewImage || PLACEHOLDER_IMAGE}
+						src={sizedImageUrl(previewImage || PLACEHOLDER_IMAGE, 800)}
 						width={300}
 						height={200}
+						unoptimized
 						alt={
 							previewImage
 								? `Currently displayed on ${frame.title}`

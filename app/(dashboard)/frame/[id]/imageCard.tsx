@@ -1,7 +1,13 @@
 import { Trash2, Download, Calendar, File, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDate, formatDateTime, formatFileSize } from "@/lib/utils";
+import {
+	formatDate,
+	formatDateTime,
+	formatFileSize,
+	imageSrcSet,
+	sizedImageUrl,
+} from "@/lib/utils";
 import { useLocale } from "@/app/lib/use-locale";
 import { type MediaFile, useDeleteMedia } from "@/app/lib/queries/media";
 import { toast } from "sonner";
@@ -21,7 +27,10 @@ export default function ImageCard({ item }: { item: MediaFile }) {
 	const handleDownload = async () => {
 		if (!item.url) return;
 
-		const response = await fetch(item.url);
+		// The full-resolution original, not the grid's resized variant. Cross-origin
+		// fetch drops cookies unless asked, and the images Worker answers an
+		// unauthenticated request with 403 — hence `credentials`.
+		const response = await fetch(item.url, { credentials: "include" });
 		const blobImage = await response.blob();
 		const href = URL.createObjectURL(blobImage);
 
@@ -42,8 +51,18 @@ export default function ImageCard({ item }: { item: MediaFile }) {
 
 	return (
 		<Card className="gap-0 overflow-hidden py-0">
+			{/* `sizes` tracks the masonry breakpoints in virtualized-masonry-grid.tsx
+			    (4 columns ≥1280px, 3 ≥1024, 2 ≥768, else 1), minus the sidebar. */}
 			{/* eslint-disable-next-line @next/next/no-img-element */}
-			<img src={item.url} alt={item.name} className="block h-auto w-full" />
+			<img
+				src={sizedImageUrl(item.url, 800)}
+				srcSet={imageSrcSet(item.url)}
+				sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 30vw, (min-width: 768px) 45vw, 92vw"
+				alt={item.name}
+				loading="lazy"
+				decoding="async"
+				className="block h-auto w-full"
+			/>
 			{/* One centred row: the filename/meta block and the actions are siblings,
 			    so tall buttons no longer inflate the meta line and leave more
 			    whitespace below the text than above it. */}

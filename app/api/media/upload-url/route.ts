@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { db } from "@/app/lib/db";
 import { frame } from "@/db/frame.sql";
 import { usersToFrames } from "@/db/frameOnUser.sql";
+import { imageUrl } from "@/app/lib/image-url";
 import { and, eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
 			uploadUrl: signedUrl,
 			key,
 			contentType,
-			fileUrl: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${key}`,
+			fileUrl: imageUrl(key),
 		});
 	} catch (error) {
 		console.error("Error generating upload URL:", error);

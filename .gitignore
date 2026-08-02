@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+workers/*/node_modules
+workers/*/.wrangler
 /.pnp
 .pnp.*
 .yarn/*
@@ -39,3 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Backups written by scripts/rewrite-media-host.ts
+media-url-backup-*.json

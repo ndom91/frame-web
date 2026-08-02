@@ -1,0 +1,19 @@
+{
+	"name": "frame-images-worker",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Serves frame photos from R2 behind a signed-cookie check.",
+	"scripts": {
+		"dev": "wrangler dev --remote",
+		"deploy": "wrangler deploy",
+		"typecheck": "tsc --noEmit",
+		"tail": "wrangler tail",
+		"//build": "Runs as the Workers Builds build step, so a type error fails the build instead of shipping.",
+		"build": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20260730.1",
+		"typescript": "^5",
+		"wrangler": "^4.28.0"
+	}
+}

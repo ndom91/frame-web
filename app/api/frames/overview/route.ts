@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
 import { db } from "@/app/lib/db";
@@ -6,6 +6,7 @@ import { frame } from "@/db/frame.sql";
 import { media } from "@/db/media.sql";
 import { usersToFrames } from "@/db/frameOnUser.sql";
 import { auth } from "@/app/lib/auth";
+import { attachImageCookie } from "@/app/lib/image-cookie";
 import { headers } from "next/headers";
 
 export type FrameOverview = {
@@ -24,7 +25,7 @@ export type FrameOverview = {
  * Both values here come from SQL against `media`, which is authoritative now
  * that it's backfilled from R2 and kept in sync by the upload and delete routes.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
 		return NextResponse.json({ error: "Restricted" }, { status: 403 });
@@ -44,6 +45,11 @@ export async function GET() {
 		if (frames.length === 0) {
 			return NextResponse.json([]);
 		}
+
+		// The dashboard renders preview images straight off this response, so it
+		// needs the cookie that authorises them. `frames` is already exactly the
+		// set the user may read.
+		const accessibleFrameIds = frames.map((row) => row.frameId);
 
 		// media.frame_id stores frame.id as text, matching POST /api/media.
 		const frameKeys = frames.map((row) => String(row.id));
@@ -89,7 +95,9 @@ export async function GET() {
 			previewUrl: previewByFrame.get(String(row.id)) ?? null,
 		}));
 
-		return NextResponse.json(overview);
+		const response = NextResponse.json(overview);
+		await attachImageCookie(response, request, accessibleFrameIds);
+		return response;
 	} catch (error) {
 		console.error("Error building frames overview:", error);
 		return NextResponse.json(

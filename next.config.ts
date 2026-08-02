@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+// Read from env rather than hardcoded, so pointing the app at a different image
+// host (or a local `wrangler dev`) doesn't require editing two places.
+const imageHostname = process.env.NEXT_PUBLIC_IMAGE_HOSTNAME;
+
 const nextConfig: NextConfig = {
 	experimental: {
 		optimizePackageImports: ["@phosphor-icons/react"],
@@ -9,7 +13,10 @@ const nextConfig: NextConfig = {
 			new URL("https://unsplash.it/**"),
 			new URL("https://unsplash.it/300/200?random"),
 			new URL("https://picsum.photos/**"),
-			new URL(`https://images.frame.ndo.dev/**`),
+			// Frame photos render with `unoptimized`, since the optimizer fetches
+			// server-side without the user's cookie and the images Worker rejects
+			// that. Listed anyway so the app still works if that flag is dropped.
+			...(imageHostname ? [new URL(`https://${imageHostname}/**`)] : []),
 		],
 	},
 	async redirects() {

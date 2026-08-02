@@ -8,6 +8,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { FileObject, r2Client } from "@/app/lib/r2";
+import { imageUrl } from "@/app/lib/image-url";
 import { camelCaseKeys } from "@/lib/utils";
 
 const R2_BUCKET = process.env.R2_BUCKET!;
@@ -94,7 +95,7 @@ export async function listFiles(prefix: string = ""): Promise<FileObject[]> {
 				files.push({
 					...camelCaseKeys(image),
 					name: image.Key?.split("/").pop() ?? "",
-					url: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${image.Key}`,
+					url: imageUrl(image.Key ?? ""),
 				} as FileObject);
 			}
 

@@ -9,6 +9,51 @@ export async function wait(time: number = 1000) {
 	await new Promise((resolve) => setTimeout(resolve, time));
 }
 
+/**
+ * Widths the images Worker will actually resize to. Transformations bill per
+ * unique (image, parameters) pair, so the set is closed on both ends — the
+ * Worker serves the untouched original for anything outside it.
+ */
+export const IMAGE_WIDTHS = [400, 800, 1600] as const;
+
+export type ImageWidth = (typeof IMAGE_WIDTHS)[number];
+
+/**
+ * Offers every width the Worker will serve, so the browser picks one from the
+ * viewport and pixel density rather than us guessing. Paired with `sizes`, a 1×
+ * display stops downloading the 2× variant.
+ *
+ * Returns undefined for URLs we don't serve (the placeholder), so no bogus
+ * srcset is emitted.
+ */
+export function imageSrcSet(url: string): string | undefined {
+	const widths = IMAGE_WIDTHS.map(
+		(width) => `${sizedImageUrl(url, width)} ${width}w`,
+	);
+	// sizedImageUrl passes foreign URLs through untouched, so an unchanged first
+	// entry means this isn't ours to resize.
+	if (widths[0] === `${url} ${IMAGE_WIDTHS[0]}w`) return undefined;
+	return widths.join(", ");
+}
+
+/**
+ * Requests a resized variant, but only from our own image host. Placeholder and
+ * third-party URLs are passed through untouched.
+ */
+export function sizedImageUrl(url: string, width: ImageWidth): string {
+	const hostname = process.env.NEXT_PUBLIC_IMAGE_HOSTNAME;
+	if (!url || !hostname) return url;
+
+	try {
+		const parsed = new URL(url);
+		if (parsed.hostname !== hostname.split(":")[0]) return url;
+		parsed.searchParams.set("w", String(width));
+		return parsed.toString();
+	} catch {
+		return url;
+	}
+}
+
 export function lowercaseKeys(obj: Record<string, unknown>) {
 	if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
 		return obj;

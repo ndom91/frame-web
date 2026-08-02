@@ -6,6 +6,7 @@ import { db } from "@/app/lib/db";
 import { media } from "@/db/media.sql";
 import { frame } from "@/db/frame.sql";
 import { usersToFrames } from "@/db/frameOnUser.sql";
+import { imageUrl } from "@/app/lib/image-url";
 import { and, eq } from "drizzle-orm";
 
 export async function DELETE(
@@ -44,14 +45,7 @@ export async function DELETE(
 
 		await deleteFile(decodedKey);
 		try {
-			await db
-				.delete(media)
-				.where(
-					eq(
-						media.url,
-						`https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}/${decodedKey}`,
-					),
-				);
+			await db.delete(media).where(eq(media.url, imageUrl(decodedKey)));
 		} catch (error) {
 			console.error("Failed to delete media metadata:", error);
 		}

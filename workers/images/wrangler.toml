@@ -1,0 +1,40 @@
+name = "frame-images"
+main = "src/index.ts"
+compatibility_date = "2025-08-01"
+
+# A Workers custom domain, which issues an Advanced Certificate for this exact
+# hostname. A plain route can't work here: the name is two labels deep, and
+# Universal SSL only covers the apex plus one level, so TLS fails before any
+# request is made.
+#
+# Custom domains opt out of *zone* caching, not the Cache API — this Worker
+# caches explicitly in the fetch handler, so nothing is lost.
+#
+# Note this is a *Workers* custom domain. An *R2* custom domain on the same
+# hostname is what made the bucket publicly readable in the first place.
+routes = [
+  { pattern = "img.frame.domino.photos", custom_domain = true }
+]
+
+# Same bucket the Next app and the frame device write to / read from.
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "domino-display"
+
+# Resizing happens here rather than through a dashboard-configured
+# transformation flow, because flows work by matching *public* requests on the
+# zone. Nothing here is publicly fetchable.
+[images]
+binding = "IMAGES"
+
+[vars]
+# Origin allowed to read image bytes via fetch() with credentials. Only needed
+# for the download button; <img> tags don't perform a CORS check.
+APP_ORIGIN = "https://domino.photos"
+
+# IMAGE_COOKIE_SECRET is a secret, not a var:
+#   wrangler secret put IMAGE_COOKIE_SECRET
+# The same value must be set as IMAGE_COOKIE_SECRET in the Next app's env.
+
+[observability]
+enabled = true
