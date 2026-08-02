@@ -50,6 +50,14 @@ const CACHE_SECONDS = 60 * 60 * 24 * 30;
  */
 const OUTPUT_QUALITY = 82;
 
+/**
+ * Bump whenever the transform or encoding changes. Without it a deploy leaves
+ * every previously-cached variant in place until its 30-day TTL lapses — and
+ * that failure is invisible, because stale bytes still come back as a 200.
+ * Adding `quality` above was exactly this case.
+ */
+const CACHE_VERSION = "2";
+
 function parseWidth(raw: string | null): number | null {
 	if (!raw) return null;
 	const width = Number(raw);
@@ -124,7 +132,7 @@ export default {
 		// handed to someone allowed the same frames.
 		const cache = caches.default;
 		const cacheKey = new Request(
-			`${url.origin}/${encodeURIComponent(key)}?w=${width ?? "orig"}&s=${await scopeHash(claims.f)}`,
+			`${url.origin}/${encodeURIComponent(key)}?v=${CACHE_VERSION}&w=${width ?? "orig"}&s=${await scopeHash(claims.f)}`,
 			{ method: "GET" },
 		);
 
