@@ -44,10 +44,13 @@ export default function ImageCard({ item }: { item: MediaFile }) {
 		<Card className="gap-0 overflow-hidden py-0">
 			{/* eslint-disable-next-line @next/next/no-img-element */}
 			<img src={item.url} alt={item.name} className="block h-auto w-full" />
-			<CardContent className="px-3 py-2">
-				<h4 className="truncate text-sm font-medium">{item.name}</h4>
-				<div className="mt-0.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-					<div className="flex min-w-0 items-center gap-2.5">
+			{/* One centred row: the filename/meta block and the actions are siblings,
+			    so tall buttons no longer inflate the meta line and leave more
+			    whitespace below the text than above it. */}
+			<CardContent className="flex items-center justify-between gap-2 px-3 py-2">
+				<div className="min-w-0 flex-1">
+					<h4 className="truncate text-sm font-medium">{item.name}</h4>
+					<div className="mt-0.5 flex min-w-0 items-center gap-2.5 text-xs text-muted-foreground">
 						<span className="flex shrink-0 items-center gap-1">
 							<File aria-hidden="true" className="size-3.5" />
 							{formatFileSize(item.size, locale)}
@@ -69,29 +72,31 @@ export default function ImageCard({ item }: { item: MediaFile }) {
 							</span>
 						)}
 					</div>
-					<div className="-mr-1.5 flex shrink-0 items-center">
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8"
-							type="button"
-							onClick={handleDownload}
-							aria-label={`Download ${item.name}`}
-						>
-							<Download />
-						</Button>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8 text-destructive hover:text-destructive"
-							type="button"
-							onClick={() => void handleDelete(item)}
-							disabled={deleteMedia.isPending}
-							aria-label={`Delete ${item.name}`}
-						>
-							<Trash2 />
-						</Button>
-					</div>
+				</div>
+				{/* 44px on touch viewports (the WCAG 2.5.5 target), tightened to 32px
+				    from sm: up where a cursor is doing the aiming. */}
+				<div className="-mr-2 flex shrink-0 items-center sm:-mr-1.5">
+					<Button
+						variant="ghost"
+						size="icon"
+						className="size-11 sm:size-8"
+						type="button"
+						onClick={handleDownload}
+						aria-label={`Download ${item.name}`}
+					>
+						<Download />
+					</Button>
+					<Button
+						variant="ghost"
+						size="icon"
+						className="size-11 text-destructive hover:text-destructive sm:size-8"
+						type="button"
+						onClick={() => void handleDelete(item)}
+						disabled={deleteMedia.isPending}
+						aria-label={`Delete ${item.name}`}
+					>
+						<Trash2 />
+					</Button>
 				</div>
 			</CardContent>
 		</Card>
