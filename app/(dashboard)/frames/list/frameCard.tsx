@@ -166,7 +166,9 @@ export default function Frame({
 					<div className="flex items-center justify-between gap-2">
 						<div className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
 							<MapPinIcon aria-hidden="true" className="size-4 shrink-0" />
-							<span className="truncate">{frame.location || "No location"}</span>
+							<span className="truncate">
+								{frame.location || "No location"}
+							</span>
 						</div>
 						<FrameStatusBadge status={frame.status} />
 					</div>
@@ -187,7 +189,7 @@ export default function Frame({
 					<Button variant="default" size="sm" className="flex-1" asChild>
 						<Link href={`/frame/${frame.id}`}>
 							<AirplayIcon aria-hidden="true" className="size-4" />
-							Open
+							Manage
 						</Link>
 					</Button>
 				</div>
