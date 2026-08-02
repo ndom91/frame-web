@@ -1,17 +1,31 @@
-# Frame-Web
+# 🖼️ Domino Frame Web
 
-Web admin portal for the self-hosted **Domino Frame**.
+The web admin portal for [Domino Frame](https://github.com/ndom91/domino-frame), a self-hosted digital photo-frame system.
 
-Designed to manage picture frames running the [client](https://github.com/ndom91/frame-go) software.
+## Features
 
-## 🚀 Getting Started
+- Provision a new frame over Bluetooth Low Energy with its name, Wi-Fi credentials, and frame configuration.
+- Track frames by name, location, model, status, and last sync time.
+- Search, filter, and remove frames from the portal.
+- Upload, preview, download, and delete images for each frame.
+- Media is stored in any S3 compatible object store under the frame's ID.
+- Limit portal and media access to authenticated users with access to the frame.
+- Sign in with GitHub, Google, or a passkey.
+- Install the web app on a phone as a standalone progressive web app.
+
+## Development
+
+Copy the environment template, add the required authentication, Turso, and Cloudflare R2 values, then start the app:
 
 ```bash
+cp .env.example .env
+pnpm install
+pnpm db:push
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-## 📝 License
+## License
 
 MIT
