@@ -44,6 +44,7 @@ export type FrameOverview = {
 export function useFramesOverview() {
 	return useQuery({
 		queryKey: ["frames", "overview"],
+		refetchInterval: 10_000,
 		queryFn: async (): Promise<FrameOverview[]> => {
 			const response = await fetch("/api/frames/overview");
 			if (!response.ok) {

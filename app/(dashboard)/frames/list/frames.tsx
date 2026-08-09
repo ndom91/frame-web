@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import SkeletonCard from "@/components/card-skeleton";
 import Frame from "./frameCard";
 import { useDeleteFrame, useFrames } from "@/app/lib/queries/frames";
+import { useFramesOverview } from "@/app/lib/queries/media";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
 	DropdownMenu,
@@ -32,6 +33,7 @@ import {
 
 export default function FramesPage() {
 	const { data: frames = [], isLoading, error } = useFrames();
+	const { data: overview = [] } = useFramesOverview();
 	const deleteFrame = useDeleteFrame();
 	const [selectedFrames, setSelectedFrames] = useState<number[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -51,6 +53,9 @@ export default function FramesPage() {
 			statusFilter === "all" || frame.status === statusFilter;
 		return matchesSearch && matchesStatus;
 	});
+	const previewByFrameId = new Map(
+		overview.map((entry) => [entry.id, entry.activePreviewUrl ?? entry.previewUrl]),
+	);
 
 	const allSelected =
 		filteredFrames.length > 0 &&
@@ -224,6 +229,7 @@ export default function FramesPage() {
 						frame={frame}
 						selectedFrames={selectedFrames}
 						setSelectedFrames={setSelectedFrames}
+						previewUrl={previewByFrameId.get(frame.id)}
 					/>
 				))}
 			</div>
