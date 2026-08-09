@@ -13,6 +13,9 @@ The web admin portal for [Domino Frame](https://github.com/ndom91/domino-frame),
 - Sign in with GitHub, Google, or a passkey.
 - Install the web app on a phone as a standalone progressive web app.
 
+![](./.github/assets/app_mediaList_001.png)
+![](./.github/assets/app_onboarding_001.png)
+
 ## Development
 
 Copy the environment template, add the required authentication, Turso, and Cloudflare R2 values, then start the app:
