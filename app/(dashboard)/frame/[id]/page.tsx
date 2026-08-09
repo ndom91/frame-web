@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Frame from "@/app/(dashboard)/frame/[id]/frame";
 import { db } from "@/app/lib/db";
+import { frameStatus } from "@/app/lib/frame-status";
 
 // Route params are always strings, even for a numeric segment.
 type PageProps = { params: Promise<{ id: string }> };
@@ -39,7 +40,7 @@ export default async function Page({ params }: PageProps) {
 
 	return (
 		<div>
-			<Frame frame={frame} />
+		<Frame frame={{ ...frame, status: frameStatus(frame.lastSeenAt) }} />
 		</div>
 	);
 }

@@ -17,10 +17,26 @@ export async function POST(request: NextRequest) {
 	}
 
 	try {
-		const { uptimeSeconds } = await request.json();
+		const { uptimeSeconds, storageTotalBytes, storageAvailableBytes, activeImage } = await request.json();
 		if (!Number.isSafeInteger(uptimeSeconds) || uptimeSeconds < 0) {
 			return NextResponse.json({ error: "Invalid uptime" }, { status: 400 });
 		}
+		if (
+			(storageTotalBytes !== undefined && (!Number.isSafeInteger(storageTotalBytes) || storageTotalBytes < 0)) ||
+			(storageAvailableBytes !== undefined && (!Number.isSafeInteger(storageAvailableBytes) || storageAvailableBytes < 0)) ||
+			(activeImage !== undefined && (typeof activeImage !== "string" || activeImage.includes("/")))
+		) {
+			return NextResponse.json({ error: "Invalid metrics" }, { status: 400 });
+		}
+		const metrics = {
+			status: "online" as const,
+			lastSeenAt: new Date(),
+			uptimeSeconds,
+			...(storageTotalBytes !== undefined && { storageTotalBytes }),
+			...(storageAvailableBytes !== undefined && { storageAvailableBytes }),
+			...(activeImage && { activeImage }),
+			updatedAt: new Date(),
+		};
 
 		const credential = await db.query.frameApiKey.findFirst({
 			where: eq(frameApiKey.keyHash, hashApiKey(authorization.slice(7))),
@@ -45,12 +61,7 @@ export async function POST(request: NextRequest) {
 					.where(and(eq(frameApiKey.frameId, credential.frameId), ne(frameApiKey.id, credential.id)));
 				await transaction
 					.update(frame)
-					.set({
-						status: "online",
-						lastSeenAt: new Date(),
-						uptimeSeconds,
-						updatedAt: new Date(),
-					})
+					.set(metrics)
 					.where(eq(frame.id, credential.frameId));
 				return true;
 			});
@@ -60,12 +71,7 @@ export async function POST(request: NextRequest) {
 		} else {
 			await db
 				.update(frame)
-				.set({
-					status: "online",
-					lastSeenAt: new Date(),
-					uptimeSeconds,
-					updatedAt: new Date(),
-				})
+				.set(metrics)
 				.where(eq(frame.id, credential.frameId));
 		}
 

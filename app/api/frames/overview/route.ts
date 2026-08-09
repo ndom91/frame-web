@@ -15,6 +15,7 @@ export type FrameOverview = {
 	title: string;
 	mediaCount: number;
 	previewUrl: string | null;
+	activePreviewUrl: string | null;
 };
 
 /**
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
 				id: frame.id,
 				frameId: frame.frameId,
 				title: frame.title,
+				activeImage: frame.activeImage,
 			})
 			.from(frame)
 			.innerJoin(usersToFrames, eq(frame.id, usersToFrames.frameId))
@@ -83,9 +85,19 @@ export async function GET(request: NextRequest) {
 			.select({ frameId: ranked.frameId, url: ranked.url })
 			.from(ranked)
 			.where(eq(ranked.rank, 1));
+		const mediaFiles = await db
+			.select({ frameId: media.frameId, title: media.title, url: media.url })
+			.from(media)
+			.where(inArray(media.frameId, frameKeys));
 
 		const countByFrame = new Map(counts.map((row) => [row.frameId, row.count]));
 		const previewByFrame = new Map(previews.map((row) => [row.frameId, row.url]));
+		const activePreviewByFrame = new Map(
+			mediaFiles.map((row) => [
+				`${row.frameId}:${row.title}`,
+				row.url,
+			]),
+		);
 
 		const overview: FrameOverview[] = frames.map((row) => ({
 			id: row.id,
@@ -93,6 +105,8 @@ export async function GET(request: NextRequest) {
 			title: row.title,
 			mediaCount: countByFrame.get(String(row.id)) ?? 0,
 			previewUrl: previewByFrame.get(String(row.id)) ?? null,
+			activePreviewUrl:
+				(row.activeImage && activePreviewByFrame.get(`${row.id}:${row.activeImage}`)) ?? null,
 		}));
 
 		const response = NextResponse.json(overview);

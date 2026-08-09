@@ -50,7 +50,7 @@ export default function DashboardPage() {
 	);
 
 	const previewByFrameId = new Map(
-		overview.map((entry) => [entry.id, entry.previewUrl]),
+		overview.map((entry) => [entry.id, entry.activePreviewUrl ?? entry.previewUrl]),
 	);
 
 	const formatCount = (count: number) =>

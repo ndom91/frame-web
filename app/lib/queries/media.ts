@@ -33,6 +33,7 @@ export type FrameOverview = {
 	title: string;
 	mediaCount: number;
 	previewUrl: string | null;
+	activePreviewUrl: string | null;
 };
 
 /**

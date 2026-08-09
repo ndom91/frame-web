@@ -6,7 +6,6 @@ import { Dispatch, SetStateAction, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DotsThreeIcon } from "@phosphor-icons/react/dist/ssr/DotsThree";
 import { AirplayIcon } from "@phosphor-icons/react/dist/ssr/Airplay";
-import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ArrowsClockwise";
 import { MapPinIcon } from "@phosphor-icons/react/dist/ssr/MapPin";
 import { ClockIcon } from "@phosphor-icons/react/dist/ssr/Clock";
 import { toast } from "sonner";
@@ -134,12 +133,6 @@ export default function Frame({
 							>
 								View Details
 							</DropdownMenuItem>
-							<DropdownMenuItem disabled>
-								Sync Now
-								<span className="text-muted-foreground ml-auto text-xs">
-									Soon
-								</span>
-							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								variant="destructive"
@@ -156,7 +149,11 @@ export default function Frame({
 				</div>
 			</CardHeader>
 			<CardContent className="flex h-full flex-col space-y-3 px-4">
-				<div className="relative flex-1 overflow-hidden rounded-lg bg-muted">
+				<Link
+					href={`/frame/${frame.id}`}
+					className="relative flex-1 overflow-hidden rounded-lg bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+					aria-label={`Manage ${frame.title}`}
+				>
 					{/* `unoptimized` is required, not a preference: Next's optimizer
 					    fetches the source server-side with no user cookie, and the
 					    images Worker would answer it with a 403. Resizing happens at
@@ -176,7 +173,7 @@ export default function Frame({
 					<div className="absolute top-2 right-2 rounded-md bg-background/90 p-1">
 						<FrameStatusIcon status={frame.status} />
 					</div>
-				</div>
+				</Link>
 
 				<div>
 					<div className="flex items-center justify-between gap-2">
@@ -189,19 +186,15 @@ export default function Frame({
 						<FrameStatusBadge status={frame.status} />
 					</div>
 
-					{frame.status !== "offline" && frame.updatedAt && (
+					{frame.lastSeenAt && (
 						<div className="flex items-center gap-1 text-sm text-muted-foreground">
 							<ClockIcon aria-hidden="true" className="size-4 shrink-0" />
-							Up since: {formatDate(frame.updatedAt, locale)}
+							Last seen: {formatDate(frame.lastSeenAt, locale)}
 						</div>
 					)}
 				</div>
 
 				<div className="flex gap-2">
-					<Button variant="outline" size="sm" className="flex-1" disabled>
-						<ArrowsClockwiseIcon aria-hidden="true" className="size-4" />
-						Sync Now
-					</Button>
 					<Button variant="default" size="sm" className="flex-1" asChild>
 						<Link href={`/frame/${frame.id}`}>
 							<AirplayIcon aria-hidden="true" className="size-4" />

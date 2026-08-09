@@ -5,6 +5,7 @@ import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { usersToFrames } from "@/db/frameOnUser.sql";
+import { frameStatus } from "@/app/lib/frame-status";
 
 export async function GET() {
 	const session = await auth.api.getSession({
@@ -25,7 +26,9 @@ export async function GET() {
 			return NextResponse.json([]);
 		}
 
-		return NextResponse.json(result.map((result) => result.frame));
+		return NextResponse.json(
+			result.map((result) => ({ ...result.frame, status: frameStatus(result.frame.lastSeenAt) })),
+		);
 	} catch (error) {
 		console.error("Error fetching frames:", error);
 		return NextResponse.json(

@@ -8,7 +8,6 @@ import {
 	MapPin,
 	Upload,
 	MoreHorizontal,
-	RotateCcw,
 	Trash2,
 	ImageIcon,
 	FileWarning,
@@ -28,7 +27,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
 import { FrameStatusBadge, FrameStatusIcon } from "@/components/frame-status";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { VirtualizedMasonryGrid } from "@/components/virtualized-masonry-grid";
@@ -44,13 +42,6 @@ interface Props {
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
-/**
- * Placeholder telemetry. `Frame` carries no storage fields yet, so these are
- * fixed constants rather than invented per-frame values — but the label and the
- * progress bar are now derived from the same numbers instead of disagreeing.
- */
-const STORAGE_USED_BYTES = 1_500_000_000;
-const STORAGE_TOTAL_BYTES = 32_000_000_000;
 
 function EmptyState({
 	uploadInputId,
@@ -249,9 +240,14 @@ export default function FramePage({ frame }: Props) {
 		}
 	};
 
-	const storagePercent = Math.round(
-		(STORAGE_USED_BYTES / STORAGE_TOTAL_BYTES) * 100,
-	);
+	const storageUsedBytes =
+		frame.storageTotalBytes === null || frame.storageAvailableBytes === null
+			? null
+			: frame.storageTotalBytes - frame.storageAvailableBytes;
+	const storagePercent =
+		storageUsedBytes === null || !frame.storageTotalBytes
+			? 0
+			: Math.round((storageUsedBytes / frame.storageTotalBytes) * 100);
 
 	// Copy before sorting — the array is react-query's cached value, and sorting
 	// in place mutated the cache during render.
@@ -323,14 +319,7 @@ export default function FramePage({ frame }: Props) {
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
-										<DropdownMenuItem disabled>
-											<RotateCcw aria-hidden="true" className="mr-2 h-4 w-4" />
-											Restart Frame
-											<span className="text-muted-foreground ml-auto text-xs">
-												Soon
-											</span>
-										</DropdownMenuItem>
-										<DropdownMenuSeparator />
+								<DropdownMenuSeparator />
 										<DropdownMenuItem
 											variant="destructive"
 											onSelect={(event) => {
@@ -378,15 +367,12 @@ export default function FramePage({ frame }: Props) {
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Storage</span>
 									<span className="text-sm font-medium tabular-nums">
-										{formatFileSize(STORAGE_USED_BYTES, locale)} /{" "}
-										{formatFileSize(STORAGE_TOTAL_BYTES, locale)}
-									</span>
-								</div>
-								<Progress
-									value={storagePercent}
-									aria-label={`Storage used: ${storagePercent}%`}
-									className="h-2"
-								/>
+									{storageUsedBytes === null || frame.storageTotalBytes === null
+										? "Not reported"
+										: `${formatFileSize(storageUsedBytes, locale)} / ${formatFileSize(frame.storageTotalBytes, locale)}`}
+								</span>
+							</div>
+							{storageUsedBytes !== null && <div className="h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${storagePercent}%` }} /></div>}
 							</div>
 						</CardContent>
 					</Card>
@@ -460,7 +446,7 @@ export default function FramePage({ frame }: Props) {
 					<VirtualizedMasonryGrid
 						items={sortedMedia}
 						getKey={(item) => item.key}
-						renderItem={(item) => <ImageCard item={item} />}
+						renderItem={(item) => <ImageCard item={item} isActive={item.name === frame.activeImage} />}
 					/>
 				) : (
 					<EmptyState

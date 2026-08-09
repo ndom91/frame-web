@@ -11,6 +11,9 @@ export const frame = sqliteTable("frame", {
 	status: text().$type<"online" | "offline" | "syncing">().default("offline"),
 	lastSeenAt: integer("last_seen_at", { mode: "timestamp" }),
 	uptimeSeconds: integer("uptime_seconds"),
+	storageTotalBytes: integer("storage_total_bytes"),
+	storageAvailableBytes: integer("storage_available_bytes"),
+	activeImage: text("active_image"),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.$defaultFn(() => /* @__PURE__ */ new Date())
 		.notNull(),

@@ -11,6 +11,9 @@ export type Frame = {
   status: 'online' | 'offline' | 'syncing'
   lastSeenAt: Date | null
   uptimeSeconds: number | null
+  storageTotalBytes: number | null
+  storageAvailableBytes: number | null
+  activeImage: string | null
   createdAt: Date
   updatedAt: Date | null
 }

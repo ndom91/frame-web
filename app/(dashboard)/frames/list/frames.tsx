@@ -186,13 +186,7 @@ export default function FramesPage() {
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
-								<DropdownMenuItem disabled>
-									Restart Selected
-									<span className="text-muted-foreground ml-auto text-xs">
-										Soon
-									</span>
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
+							<DropdownMenuSeparator />
 								<DropdownMenuItem
 									variant="destructive"
 									onSelect={(event) => {

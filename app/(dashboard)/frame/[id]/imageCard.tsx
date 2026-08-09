@@ -12,7 +12,7 @@ import { useLocale } from "@/app/lib/use-locale";
 import { type MediaFile, useDeleteMedia } from "@/app/lib/queries/media";
 import { toast } from "sonner";
 
-export default function ImageCard({ item }: { item: MediaFile }) {
+export default function ImageCard({ item, isActive }: { item: MediaFile; isActive: boolean }) {
 	const locale = useLocale();
 	const deleteMedia = useDeleteMedia();
 
@@ -50,7 +50,7 @@ export default function ImageCard({ item }: { item: MediaFile }) {
 	};
 
 	return (
-		<Card className="gap-0 overflow-hidden py-0">
+		<Card className={isActive ? "ring-2 ring-primary ring-offset-2 ring-offset-background gap-0 overflow-hidden py-0" : "gap-0 overflow-hidden py-0"}>
 			{/* `sizes` tracks the masonry breakpoints in virtualized-masonry-grid.tsx
 			    (4 columns ≥1280px, 3 ≥1024, 2 ≥768, else 1), minus the sidebar. */}
 			{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -69,6 +69,7 @@ export default function ImageCard({ item }: { item: MediaFile }) {
 			<CardContent className="flex items-center justify-between gap-2 px-3 py-2">
 				<div className="min-w-0 flex-1">
 					<h4 className="truncate text-sm font-medium">{item.name}</h4>
+					{isActive && <p className="text-xs text-primary">Currently displaying</p>}
 					<div className="mt-0.5 flex min-w-0 items-center gap-2.5 text-xs text-muted-foreground">
 						<span className="flex shrink-0 items-center gap-1">
 							<File aria-hidden="true" className="size-3.5" />

@@ -110,8 +110,6 @@ async function setupPhotoFrame(
 
 	await client.sendCommand("complete_setup");
 
-	// TODO: Write Frame to DB
-	// TODO: Show BLE Frames in table / list
 }
 
 type FieldName = "name" | "ssid" | "password";
