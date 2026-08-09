@@ -4,8 +4,8 @@ The web admin portal for [Domino Frame](https://github.com/ndom91/domino-frame),
 
 ## Features
 
-- Provision a new frame over Bluetooth Low Energy with its name, Wi-Fi credentials, and frame configuration.
-- Track frames by name, location, model, status, and last sync time.
+- Provision a new frame over Bluetooth Low Energy with its name, Wi-Fi credentials, and a per-frame API key.
+- Track heartbeat-based frame status, including host uptime, storage capacity, last seen time, and the active image.
 - Search, filter, and remove frames from the portal.
 - Upload, preview, download, and delete images for each frame.
 - Media is stored in any S3 compatible object store under the frame's ID.
@@ -25,6 +25,8 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+`pnpm db:push` applies additive schema changes to the configured Turso database. The deployed portal must use HTTPS for frame provisioning and telemetry.
 
 ## License
 
