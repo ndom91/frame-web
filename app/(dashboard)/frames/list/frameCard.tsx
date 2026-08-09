@@ -26,7 +26,7 @@ import type { Frame } from "@/lib/types";
 import { useMedia } from "@/app/lib/queries/media";
 import { useDeleteFrame } from "@/app/lib/queries/frames";
 import { formatDate, sizedImageUrl } from "@/lib/utils";
-import { useLocale } from "@/app/lib/use-locale";
+import { useLocale, useTimeZone } from "@/app/lib/use-locale";
 
 interface Props {
 	frame: Frame;
@@ -50,6 +50,7 @@ export default function Frame({
 }: Props) {
 	const router = useRouter();
 	const locale = useLocale();
+	const timeZone = useTimeZone();
 	const checkboxId = useId();
 	const { data: mediaFiles = [] } = useMedia(frame.frameId, {
 		enabled: previewUrl === undefined,
@@ -189,7 +190,7 @@ export default function Frame({
 					{frame.lastSeenAt && (
 						<div className="flex items-center gap-1 text-sm text-muted-foreground">
 							<ClockIcon aria-hidden="true" className="size-4 shrink-0" />
-							Last seen: {formatDate(frame.lastSeenAt, locale)}
+							Last seen: {formatDate(frame.lastSeenAt, locale, timeZone)}
 						</div>
 					)}
 				</div>

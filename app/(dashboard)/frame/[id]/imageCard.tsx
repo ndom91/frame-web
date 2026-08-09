@@ -8,12 +8,13 @@ import {
 	imageSrcSet,
 	sizedImageUrl,
 } from "@/lib/utils";
-import { useLocale } from "@/app/lib/use-locale";
+import { useLocale, useTimeZone } from "@/app/lib/use-locale";
 import { type MediaFile, useDeleteMedia } from "@/app/lib/queries/media";
 import { toast } from "sonner";
 
 export default function ImageCard({ item, isActive }: { item: MediaFile; isActive: boolean }) {
 	const locale = useLocale();
+	const timeZone = useTimeZone();
 	const deleteMedia = useDeleteMedia();
 
 	const handleDelete = async (file: MediaFile) => {
@@ -77,10 +78,10 @@ export default function ImageCard({ item, isActive }: { item: MediaFile; isActiv
 						</span>
 						<span
 							className="flex shrink-0 items-center gap-1"
-							title={formatDateTime(item.lastmodified, locale)}
+							title={formatDateTime(item.lastmodified, locale, timeZone)}
 						>
 							<Calendar aria-hidden="true" className="size-3.5" />
-							{formatDate(item.lastmodified, locale)}
+							{formatDate(item.lastmodified, locale, timeZone)}
 						</span>
 						{/* Only shown when known. Photos uploaded before the media table
 						    was populated have no row, and rendering "Unknown" on every

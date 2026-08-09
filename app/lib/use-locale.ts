@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DEFAULT_LOCALE } from "@/lib/utils";
+import { DEFAULT_LOCALE, DEFAULT_TIME_ZONE } from "@/lib/utils";
 
 /**
  * The visitor's locale, in a hydration-safe way.
@@ -21,4 +21,17 @@ export function useLocale(): string {
 	}, []);
 
 	return locale;
+}
+
+/**
+ * The visitor's time zone, adopting the browser value only after hydration.
+ */
+export function useTimeZone(): string {
+	const [timeZone, setTimeZone] = useState(DEFAULT_TIME_ZONE);
+
+	useEffect(() => {
+		setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+	}, []);
+
+	return timeZone;
 }

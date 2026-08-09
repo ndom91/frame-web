@@ -92,6 +92,7 @@ export function camelCaseKeys<T>(obj: T): T {
  * (`app/lib/use-locale.ts`), which only switches over after mount.
  */
 export const DEFAULT_LOCALE = "en-US";
+export const DEFAULT_TIME_ZONE = "UTC";
 
 /** Narrow width space, so a value and its unit never wrap apart. */
 const NBSP = " ";
@@ -167,6 +168,7 @@ export function formatFileSize(
 export function formatDate(
 	input: string | number | Date | null | undefined,
 	locale: string = DEFAULT_LOCALE,
+	timeZone: string = DEFAULT_TIME_ZONE,
 ): string {
 	const date = toDate(input);
 	if (!date) return "";
@@ -175,6 +177,7 @@ export function formatDate(
 		month: "short",
 		day: "numeric",
 		year: "numeric",
+		timeZone,
 	}).format(date);
 }
 
@@ -182,6 +185,7 @@ export function formatDate(
 export function formatDateTime(
 	input: string | number | Date | null | undefined,
 	locale: string = DEFAULT_LOCALE,
+	timeZone: string = DEFAULT_TIME_ZONE,
 ): string {
 	const date = toDate(input);
 	if (!date) return "";
@@ -189,5 +193,6 @@ export function formatDateTime(
 	return new Intl.DateTimeFormat(locale, {
 		dateStyle: "medium",
 		timeStyle: "short",
+		timeZone,
 	}).format(date);
 }

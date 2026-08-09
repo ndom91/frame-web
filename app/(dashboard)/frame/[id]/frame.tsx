@@ -32,7 +32,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { VirtualizedMasonryGrid } from "@/components/virtualized-masonry-grid";
 import type { Frame } from "@/lib/types";
 import { formatDateTime, formatFileSize } from "@/lib/utils";
-import { useLocale } from "@/app/lib/use-locale";
+import { useLocale, useTimeZone } from "@/app/lib/use-locale";
 import { useMedia, useUploadMedia } from "@/app/lib/queries/media";
 import { useDeleteFrame, useFrame } from "@/app/lib/queries/frames";
 
@@ -96,6 +96,7 @@ function EmptyState({
 export default function FramePage({ frame: initialFrame }: Props) {
 	const router = useRouter();
 	const locale = useLocale();
+	const timeZone = useTimeZone();
 	const { data: frame = initialFrame } = useFrame(initialFrame.id, {
 		refetchInterval: 10_000,
 	});
@@ -353,7 +354,7 @@ export default function FramePage({ frame: initialFrame }: Props) {
 									</span>
 									<span className="text-sm font-medium tabular-nums">
 									{frame.lastSeenAt
-										? formatDateTime(frame.lastSeenAt, locale)
+										? formatDateTime(frame.lastSeenAt, locale, timeZone)
 										: "Never"}
 									</span>
 								</div>
