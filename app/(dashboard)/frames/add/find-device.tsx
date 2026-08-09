@@ -44,6 +44,15 @@ export class PhotoFrameSetupClient implements PhotoFrameSetup {
 		}
 	}
 
+	getFrameID(): string {
+		const prefix = "DominoFrame-";
+		const frameID = this.device?.name?.startsWith(prefix)
+			? this.device.name.slice(prefix.length)
+			: "";
+		if (!frameID) throw new Error("Connected device did not provide a frame ID");
+		return frameID;
+	}
+
 	async setWiFiCredentials(credentials: WiFiCredentials): Promise<void> {
 		const char = this.characteristics.get("WIFI_CREDENTIALS")!;
 		const data = new TextEncoder().encode(JSON.stringify(credentials));
@@ -64,19 +73,34 @@ export class PhotoFrameSetupClient implements PhotoFrameSetup {
 }
 
 async function setupPhotoFrame(
-	frameConfig: FrameConfig,
+	name: string,
 	wifiCredentials: WiFiCredentials,
 ): Promise<void> {
 	const client = new PhotoFrameSetupClient();
 
 	await client.connect();
 	toast.success("Connected to frame");
+	const registration = await fetch("/api/frames/register", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ title: name, frameId: client.getFrameID() }),
+	});
+	if (!registration.ok) {
+		const { error } = await registration.json();
+		throw new Error(error || "Failed to register frame");
+	}
+	const { apiEndpoint, apiKey } = await registration.json();
 
 	await client.setWiFiCredentials(wifiCredentials);
 	toast.info("WiFi credentials sent");
 	await wait(1000);
 
-	await client.setFrameConfig(frameConfig);
+	await client.setFrameConfig({
+		name,
+		s3_bucket: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}`,
+		api_endpoint: apiEndpoint,
+		api_key: apiKey,
+	});
 	toast.info("Frame configuration sent");
 	await wait(1000);
 
@@ -155,18 +179,7 @@ export function FindDevice() {
 
 		setIsSubmitting(true);
 		try {
-			await setupPhotoFrame(
-				{
-					name: name.trim(),
-					// The firmware ignores this: it builds its own R2 client from
-					// CF_ACCOUNT_ID / R2_BUCKET_NAME / R2_ACCESS_KEY and only echoes
-					// s3_bucket back in a status response (frame-go ble.go:445). Sent
-					// as the public image host so it's at least a URL something could
-					// fetch unauthenticated, should the device ever start using it.
-					s3_bucket: `https://${process.env.NEXT_PUBLIC_IMAGE_HOSTNAME}`,
-				},
-				{ ssid: ssid.trim(), password },
-			);
+			await setupPhotoFrame(name.trim(), { ssid: ssid.trim(), password });
 			toast.success("Setup complete", {
 				description: `${name.trim()} is configured and connecting to ${ssid.trim()}.`,
 			});

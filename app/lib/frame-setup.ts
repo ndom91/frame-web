@@ -15,11 +15,14 @@ export interface WiFiCredentials {
 export interface FrameConfig {
 	name: string;
 	s3_bucket: string;
+	api_endpoint: string;
+	api_key: string;
 }
 
 export type SetupCommand = "complete_setup" | "test_wifi" | "reset";
 
 export interface PhotoFrameSetup {
+	getFrameID(): string;
 	setWiFiCredentials(credentials: WiFiCredentials): Promise<void>;
 	setFrameConfig(config: FrameConfig): Promise<void>;
 	sendCommand(command: SetupCommand): Promise<void>;

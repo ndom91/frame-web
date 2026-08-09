@@ -7,6 +7,8 @@ export type Frame = {
 	updatedAt: Date | null;
 	frameId: string;
 	status: "online" | "offline" | "syncing" | null;
+	lastSeenAt: Date | null;
+	uptimeSeconds: number | null;
 	lastSync?: string;
 	currentImage?: string;
 };

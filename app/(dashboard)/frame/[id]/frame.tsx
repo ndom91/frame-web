@@ -357,20 +357,20 @@ export default function FramePage({ frame }: Props) {
 							<div className="space-y-2">
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">
-										Last Sync
+									Last seen
 									</span>
 									<span className="text-sm font-medium tabular-nums">
-										{frame.lastSync
-											? formatDateTime(frame.lastSync, locale)
-											: "Never"}
+									{frame.lastSeenAt
+										? formatDateTime(frame.lastSeenAt, locale)
+										: "Never"}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Uptime</span>
-									{/* No uptime field on `Frame` yet — placeholder rather than a
-									    fabricated value. */}
-									<span className="text-sm font-medium text-muted-foreground">
-										Not reported
+									<span className="text-sm font-medium tabular-nums">
+										{frame.uptimeSeconds === null
+											? "Not reported"
+											: `${Math.floor(frame.uptimeSeconds / 3600)}h ${Math.floor((frame.uptimeSeconds % 3600) / 60)}m`}
 									</span>
 								</div>
 							</div>

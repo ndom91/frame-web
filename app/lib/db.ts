@@ -7,6 +7,7 @@ import { verification } from "../../db/verification.sql";
 import { session } from "../../db/session.sql";
 import { account } from "../../db/account.sql";
 import { passkey as passkeySchema } from "../../db/passkey.sql";
+import { frameApiKey } from "../../db/frameApiKey.sql";
 
 export const db = drizzle({
 	schema: {
@@ -18,6 +19,7 @@ export const db = drizzle({
 		frame,
 		usersToFrames,
 		media,
+		frameApiKey,
 	},
 	connection: {
 		url: process.env.TURSO_DATABASE_URL!,

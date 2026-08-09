@@ -9,6 +9,8 @@ export type Frame = {
   location: string
   model: string
   status: 'online' | 'offline' | 'syncing'
+  lastSeenAt: Date | null
+  uptimeSeconds: number | null
   createdAt: Date
   updatedAt: Date | null
 }
