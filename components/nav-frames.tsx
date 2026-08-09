@@ -64,7 +64,6 @@ export function NavFrames() {
 									<Link
 										href={href}
 										aria-current={isCurrent ? "page" : undefined}
-										className="flex flex-col items-start"
 									>
 										<div className="flex min-w-0 items-center gap-1">
 											<span className="truncate">{frame.title}</span>
