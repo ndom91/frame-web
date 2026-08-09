@@ -4,6 +4,7 @@ import { frame } from "@/db/frame.sql";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { auth } from "@/app/lib/auth";
+import { frameStatus } from "@/app/lib/frame-status";
 
 export async function GET(
 	_request: NextRequest,
@@ -32,7 +33,7 @@ export async function GET(
 			return NextResponse.json({ error: "Frame not found" }, { status: 404 });
 		}
 
-		return NextResponse.json(frameResult);
+		return NextResponse.json({ ...frameResult, status: frameStatus(frameResult.lastSeenAt) });
 	} catch (error) {
 		console.error("Error fetching frame:", error);
 		return NextResponse.json(

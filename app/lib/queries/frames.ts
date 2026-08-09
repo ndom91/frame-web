@@ -44,7 +44,7 @@ export function useFrames() {
   })
 }
 
-export function useFrame(id: number) {
+export function useFrame(id: number, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: ['frames', id],
     queryFn: async (): Promise<Frame> => {
@@ -58,6 +58,7 @@ export function useFrame(id: number) {
       return response.json()
     },
     enabled: !!id,
+    refetchInterval: options?.refetchInterval,
   })
 }
 

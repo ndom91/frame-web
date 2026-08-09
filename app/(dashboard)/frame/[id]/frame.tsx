@@ -34,7 +34,7 @@ import type { Frame } from "@/lib/types";
 import { formatDateTime, formatFileSize } from "@/lib/utils";
 import { useLocale } from "@/app/lib/use-locale";
 import { useMedia, useUploadMedia } from "@/app/lib/queries/media";
-import { useDeleteFrame } from "@/app/lib/queries/frames";
+import { useDeleteFrame, useFrame } from "@/app/lib/queries/frames";
 
 interface Props {
 	frame: Frame;
@@ -93,9 +93,12 @@ function EmptyState({
 	);
 }
 
-export default function FramePage({ frame }: Props) {
+export default function FramePage({ frame: initialFrame }: Props) {
 	const router = useRouter();
 	const locale = useLocale();
+	const { data: frame = initialFrame } = useFrame(initialFrame.id, {
+		refetchInterval: 10_000,
+	});
 	const [isDragging, setIsDragging] = useState(false);
 	const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
 
