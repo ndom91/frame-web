@@ -361,7 +361,9 @@ export default function FramePage({ frame: initialFrame }: Props) {
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Uptime</span>
 									<span className="text-sm font-medium tabular-nums">
-										{frame.uptimeSeconds === null
+										{frame.status === "offline"
+											? "N/A"
+											: frame.uptimeSeconds === null
 											? "Not reported"
 											: `${Math.floor(frame.uptimeSeconds / 3600)}h ${Math.floor((frame.uptimeSeconds % 3600) / 60)}m`}
 									</span>
